@@ -20,6 +20,7 @@ typedef struct mf_context mfContext;
 #include <freerdp/client/rdpgfx.h>
 #include <freerdp/client/cliprdr.h>
 #include <freerdp/client/encomsp.h>
+#include <freerdp/client/rail.h>
 
 #include <winpr/crt.h>
 #include <winpr/synch.h>
@@ -91,6 +92,8 @@ struct mf_context
 	int yMinScroll;       // minimum vertical scroll value
 	int yCurrentScroll;   // current vertical scroll value
 	int yMaxScroll;       // maximum vertical scroll value
+    
+    RailClientContext *rail;
 };
 
 #endif // MFREERDP_H

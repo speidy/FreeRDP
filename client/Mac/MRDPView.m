@@ -23,6 +23,7 @@
 #import "mfreerdp.h"
 #import "MRDPView.h"
 #import "MRDPCursor.h"
+#import "MRDPRail.h"
 #import "Clipboard.h"
 #import "PasswordDialog.h"
 
@@ -887,6 +888,10 @@ void mac_OnChannelConnectedEventHandler(rdpContext* context, ChannelConnectedEve
 	{
 		
 	}
+    else if (strcmp(e->name, RAIL_SVC_CHANNEL_NAME) == 0)
+    {
+        mac_rail_init(mfc, (RailClientContext*) e->pInterface);
+    }
 }
 
 void mac_OnChannelDisconnectedEventHandler(rdpContext* context, ChannelDisconnectedEventArgs* e)
@@ -911,6 +916,10 @@ void mac_OnChannelDisconnectedEventHandler(rdpContext* context, ChannelDisconnec
 	{
 		
 	}
+    else if (strcmp(e->name, RAIL_SVC_CHANNEL_NAME) == 0)
+    {
+        mac_rail_uninit(mfc, (RailClientContext*) e->pInterface);
+    }
 }
 
 BOOL mac_pre_connect(freerdp* instance)
@@ -960,6 +969,10 @@ BOOL mac_pre_connect(freerdp* instance)
 	settings->OrderSupport[NEG_POLYGON_CB_INDEX] = FALSE;
 	settings->OrderSupport[NEG_ELLIPSE_SC_INDEX] = FALSE;
 	settings->OrderSupport[NEG_ELLIPSE_CB_INDEX] = FALSE;
+    
+    // TODO: dirty hack, get from command line args
+    settings->RemoteApplicationMode = TRUE;
+    settings->RemoteApplicationName = strdup("||notepad");
 	
 	PubSub_SubscribeChannelConnected(instance->context->pubSub,
 					 (pChannelConnectedEventHandler) mac_OnChannelConnectedEventHandler);
@@ -972,7 +985,7 @@ BOOL mac_pre_connect(freerdp* instance)
 
 	if (freerdp_channels_pre_connect(instance->context->channels, instance) != CHANNEL_RC_OK)
 		return FALSE;
-	
+    
 	return TRUE;
 }
 
