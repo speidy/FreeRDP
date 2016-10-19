@@ -92,8 +92,9 @@ struct mf_context
 	int yMinScroll;       // minimum vertical scroll value
 	int yCurrentScroll;   // current vertical scroll value
 	int yMaxScroll;       // maximum vertical scroll value
-    
-    RailClientContext *rail;
+
+	RailClientContext* rail;
+	wHashTable* railWindows;
 };
 
 #endif // MFREERDP_H

@@ -1,8 +1,8 @@
 
 #import <Foundation/Foundation.h>
 
-#import "O1RDPRail.h"
-#import "O1RDPSession_private.h"
+#import "mfreerdp.h"
+#import "MRDPWindow.h"
 
 int mf_AppWindowInit(mfContext* mfc, mfAppWindow* appWindow)
 {

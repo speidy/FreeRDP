@@ -1,5 +1,5 @@
 
-#import <freerdp/client/mfreerdp.h>
+#import "mfreerdp.h"
 
 #import "freerdp/freerdp.h"
 #import "freerdp/channels/channels.h"
