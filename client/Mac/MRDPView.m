@@ -925,7 +925,6 @@ void mac_OnChannelDisconnectedEventHandler(rdpContext* context, ChannelDisconnec
 BOOL mac_pre_connect(freerdp* instance)
 {
 	rdpSettings* settings;
-    mfContext* mfc = (mfContext*) instance->context;
 
 	instance->update->BeginPaint = mac_begin_paint;
 	instance->update->EndPaint = mac_end_paint;
