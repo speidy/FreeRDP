@@ -100,13 +100,23 @@ BOOL mfreerdp_client_new(freerdp* instance, rdpContext* context)
 	settings->AsyncTransport = TRUE;
 	settings->AsyncUpdate = TRUE;
 	settings->AsyncInput = TRUE;
-
+    
+    mfc->railWindows = HashTable_New(TRUE);
+    
 	return TRUE;
 }
 
 void mfreerdp_client_free(freerdp* instance, rdpContext* context)
 {
-
+    mfContext* mfc;
+    
+    mfc = (mfContext*) instance->context;
+    
+    if (mfc->railWindows != NULL)
+    {
+        HashTable_Free(mfc->railWindows);
+    }
+   
 }
 
 void freerdp_client_mouse_event(rdpContext* cfc, DWORD flags, int x, int y)

@@ -925,6 +925,7 @@ void mac_OnChannelDisconnectedEventHandler(rdpContext* context, ChannelDisconnec
 BOOL mac_pre_connect(freerdp* instance)
 {
 	rdpSettings* settings;
+    mfContext* mfc = (mfContext*) instance->context;
 
 	instance->update->BeginPaint = mac_begin_paint;
 	instance->update->EndPaint = mac_end_paint;
@@ -972,7 +973,7 @@ BOOL mac_pre_connect(freerdp* instance)
     
     // TODO: dirty hack, get from command line args
     settings->RemoteApplicationMode = TRUE;
-    settings->RemoteApplicationName = strdup("||notepad");
+    settings->RemoteApplicationProgram = strdup("||notepad");
 	
 	PubSub_SubscribeChannelConnected(instance->context->pubSub,
 					 (pChannelConnectedEventHandler) mac_OnChannelConnectedEventHandler);
@@ -1010,7 +1011,7 @@ BOOL mac_post_connect(freerdp* instance)
 	settings = instance->settings;
 	
 	flags = CLRCONV_ALPHA | CLRCONV_RGB555;
-	
+
 	//if (settings->ColorDepth > 16)
 		flags |= CLRBUF_32BPP;
 	//else

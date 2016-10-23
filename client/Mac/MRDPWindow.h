@@ -48,7 +48,8 @@ struct mf_app_window
 
     //GC gc;
     //int shmid;
-    //Window handle;
+    NSWindow* handle;
+    NSRect frame;
     //Window* xfwin;
     BOOL fullscreen;
     BOOL decorations;

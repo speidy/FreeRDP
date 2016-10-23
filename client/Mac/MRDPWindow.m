@@ -6,6 +6,14 @@
 
 int mf_AppWindowInit(mfContext* mfc, mfAppWindow* appWindow)
 {
+    appWindow->frame = NSMakeRect(appWindow->x, appWindow->y, appWindow->width, appWindow->height);
+    appWindow->handle = [[[NSWindow alloc] initWithContentRect:appWindow->frame
+                                                     styleMask:NSBorderlessWindowMask
+                                                       backing:NSBackingStoreBuffered
+                                                         defer:NO] autorelease];
+    [appWindow->handle setTitle: [NSString stringWithUTF8String: appWindow->title]];
+    [appWindow->handle setBackgroundColor:[NSColor blueColor]];
+    [appWindow->handle makeKeyAndOrderFront:NSApp];
     return 1;
 }
 
