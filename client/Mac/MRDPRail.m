@@ -12,6 +12,76 @@
 #import "MRDPRail.h"
 #import "MRDPWindow.h"
 
+void mac_rail_invalidate_region(mfContext* mfc, REGION16* invalidRegion)
+{
+    int index;
+    int count;
+    RECTANGLE_16 updateRect;
+    RECTANGLE_16 windowRect;
+    ULONG_PTR* pKeys = NULL;
+    mfAppWindow* appWindow;
+    const RECTANGLE_16* extents;
+    REGION16 windowInvalidRegion;
+    
+    region16_init(&windowInvalidRegion);
+    
+    count = HashTable_GetKeys(mfc->railWindows, &pKeys);
+    
+    for (index = 0; index < count; index++)
+    {
+        appWindow = (mfAppWindow*) HashTable_GetItemValue(mfc->railWindows, (void*) pKeys[index]);
+        
+        if (appWindow)
+        {
+            windowRect.left = MAX(appWindow->x, 0);
+            windowRect.top = MAX(appWindow->y, 0);
+            windowRect.right = MAX(appWindow->x + appWindow->width, 0);
+            windowRect.bottom = MAX(appWindow->y + appWindow->height, 0);
+            
+            region16_clear(&windowInvalidRegion);
+            region16_intersect_rect(&windowInvalidRegion, invalidRegion, &windowRect);
+            
+            if (!region16_is_empty(&windowInvalidRegion))
+            {
+                extents = region16_extents(&windowInvalidRegion);
+                
+                updateRect.left = extents->left - appWindow->x;
+                updateRect.top = extents->top - appWindow->y;
+                updateRect.right = extents->right - appWindow->x;
+                updateRect.bottom = extents->bottom - appWindow->y;
+                
+                if (appWindow)
+                {
+                    mf_UpdateWindowArea(mfc, appWindow, updateRect.left, updateRect.top,
+                                        updateRect.right - updateRect.left,
+                                        updateRect.bottom - updateRect.top);
+                }
+            }
+        }
+    }
+    
+    region16_uninit(&windowInvalidRegion);
+}
+
+void mac_rail_paint(mfContext* xfc, INT32 uleft, INT32 utop, UINT32 uright, UINT32 ubottom)
+{
+    REGION16 invalidRegion;
+    RECTANGLE_16 invalidRect;
+    
+    invalidRect.left = uleft;
+    invalidRect.top = utop;
+    invalidRect.right = uright;
+    invalidRect.bottom = ubottom;
+    
+    region16_init(&invalidRegion);
+    region16_union_rect(&invalidRegion, &invalidRegion, &invalidRect);
+    
+    mac_rail_invalidate_region(xfc, &invalidRegion);
+    
+    region16_uninit(&invalidRegion);
+}
+
+
 BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW_STATE_ORDER* windowState)
 {
     mfAppWindow* appWindow = NULL;

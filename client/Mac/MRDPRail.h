@@ -15,5 +15,6 @@
 
 void mac_rail_init(mfContext* mfc, RailClientContext* rail);
 void mac_rail_uninit(mfContext* mfc, RailClientContext* rail);
+void mac_rail_paint(mfContext* xfc, INT32 uleft, INT32 utop, UINT32 uright, UINT32 ubottom);
 
 #endif /* MRDPRail_h */

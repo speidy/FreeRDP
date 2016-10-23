@@ -52,6 +52,33 @@ void mf_UpdateWindowArea(mfContext* mfc, mfAppWindow* appWindow,
                          int x, int y, int width, int height)
 {
     WLog_INFO(TAG, "mf_UpdateWindowArea");
+    int ax, ay;
+    rdpSettings *rdpSettings = mfc->context.settings;
+    NSWindow *window = appWindow->handle;
+    NSRect rect = [window frame];
+    
+    ax = x + appWindow->windowOffsetX;
+    ay = y + appWindow->windowOffsetY;
+    
+    if (ax + width > appWindow->windowOffsetX + appWindow->width)
+        width = (appWindow->windowOffsetX + appWindow->width - 1) - ax;
+    if (ay + height > appWindow->windowOffsetY + appWindow->height)
+        height = (appWindow->windowOffsetY + appWindow->height - 1) - ay;
+    
+//    xf_lock_x11(mfc, TRUE);
+    
+    if (rdpSettings->SoftwareGdi)
+    {
+//        XPutImage(mfc->display, mfc->primary, appWindow->gc, mfc->image,
+//                  ax, ay, ax, ay, width, height);
+    }
+    
+//    XCopyArea(mfc->display, mfc->primary, appWindow->handle, appWindow->gc,
+//              ax, ay, width, height, x, y);
+    
+//    XFlush(mfc->display);
+    
+//    xf_unlock_x11(mfc, TRUE);
 }
 
 void mf_SetWindowVisibilityRects(mfContext* mfc, mfAppWindow* appWindow,

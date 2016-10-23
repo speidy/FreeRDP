@@ -746,7 +746,7 @@ DWORD fixKeyCode(DWORD keyCode, unichar keyChar, enum APPLE_KEYBOARD_TYPE type)
 {
 	if (!context)
 		return;
-	
+    
 	if (self->bitmap_context)
 	{
 		CGContextRef cgContext = [[NSGraphicsContext currentContext] graphicsPort];
@@ -1237,6 +1237,8 @@ BOOL mac_end_paint(rdpContext* context)
 	HGDI_RGN invalid;
 	NSRect newDrawRect;
 	int ww, wh, dw, dh;
+    INT32 x, y;
+    UINT32 w, h;
 	mfContext* mfc = (mfContext*) context;
 	MRDPView* view = (MRDPView*) mfc->view;
 
@@ -1255,6 +1257,18 @@ BOOL mac_end_paint(rdpContext* context)
 	
 	if (context->gdi->primary->hdc->hwnd->invalid->null)
 		return TRUE;
+
+    if (mfc->rail != NULL)
+    {
+        x = gdi->primary->hdc->hwnd->invalid->x;
+        y = gdi->primary->hdc->hwnd->invalid->y;
+        w = gdi->primary->hdc->hwnd->invalid->w;
+        h = gdi->primary->hdc->hwnd->invalid->h;
+        
+        mac_rail_paint(mfc, x, y, x + w, y + h);
+        gdi->primary->hdc->hwnd->ninvalid = 0;
+        return TRUE;
+    }
 
 	invalid = gdi->primary->hdc->hwnd->invalid;
 
