@@ -382,7 +382,7 @@ static UINT mac_rail_server_get_appid_response(RailClientContext* context, RAIL_
 void mac_rail_init(mfContext* mfc, RailClientContext* rail)
 {
     rdpWindowUpdate* window;
-
+    
     rail->custom = (void*) mfc;
     mfc->rail = rail;
     window = mfc->context.update->window;
@@ -406,12 +406,16 @@ void mac_rail_init(mfContext* mfc, RailClientContext* rail)
     rail->ServerMinMaxInfo = mac_rail_server_min_max_info;
     rail->ServerLanguageBarInfo = mac_rail_server_language_bar_info;
     rail->ServerGetAppIdResponse = mac_rail_server_get_appid_response;
+    
+    mfc->railWindows = HashTable_New(TRUE);
 }
 
 void mac_rail_uninit(mfContext* mfc, RailClientContext* rail)
 {
+    HashTable_Free(mfc->railWindows);
     rail->custom = NULL;
     mfc->rail = NULL;
+    mfc->railWindows = NULL;
 }
 
 

@@ -1244,7 +1244,7 @@ BOOL mac_end_paint(rdpContext* context)
 	
 	if (!gdi)
 		return FALSE;
-	
+
 	ww = mfc->client_width;
 	wh = mfc->client_height;
 	dw = mfc->context.settings->DesktopWidth;

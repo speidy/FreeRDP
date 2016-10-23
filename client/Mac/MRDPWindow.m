@@ -13,7 +13,7 @@ int mf_AppWindowInit(mfContext* mfc, mfAppWindow* appWindow)
     NSRect rect;
     NSWindow *window = NULL;
     
-    rect = NSMakeRect(appWindow->x, appWindow->y, appWindow->width, appWindow->height);
+    rect = NSMakeRect(appWindow->x, appWindow->height - appWindow->y, appWindow->width, appWindow->height);
     appWindow->frame = rect;
     
     window = [[[NSWindow alloc] initWithContentRect:appWindow->frame
@@ -38,11 +38,11 @@ void mf_DestroyWindow(mfContext* mfc, mfAppWindow* appWindow)
 void mf_MoveWindow(mfContext* mfc, mfAppWindow* appWindow,
                    int x, int y, int width, int height)
 {
-    WLog_INFO(TAG, "mf_MoveWindow x: %d y: %d width: %d height: %d, old y : %f ", x, y, width, height);
+    WLog_INFO(TAG, "mf_MoveWindow x: %d y: %d width: %d height: %d", x, y, width, height);
     NSRect rect = [appWindow->handle frame];
     
     rect.origin.x = x;
-    rect.origin.y = appWindow->y - y;
+    rect.origin.y = height - y;
     rect.size = CGSizeMake(width, height);
     
     [appWindow->handle setFrame:rect display:YES animate:YES];
