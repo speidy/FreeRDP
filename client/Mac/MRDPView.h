@@ -49,7 +49,7 @@
 	BOOL skipResizeOnce;
 	BOOL saveInitialDragLoc;
 	BOOL skipMoveWindowOnce;
-	
+
 @public
 	NSPasteboard* pasteboard_rd;
 	NSPasteboard* pasteboard_wr;

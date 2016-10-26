@@ -115,24 +115,24 @@ DWORD mac_client_update_thread(void* param)
 	wMessage message;
 	wMessageQueue* queue;
 	rdpContext* context = (rdpContext*) param;
-	
+
 	status = 1;
 	queue = freerdp_get_message_queue(context->instance, FREERDP_UPDATE_MESSAGE_QUEUE);
-	
+
 	while (MessageQueue_Wait(queue))
 	{
 		while (MessageQueue_Peek(queue, &message, TRUE))
 		{
 			status = freerdp_message_queue_process_message(context->instance, FREERDP_UPDATE_MESSAGE_QUEUE, &message);
-			
+
 			if (!status)
 				break;
 		}
-		
+
 		if (!status)
 			break;
 	}
-	
+
 	ExitThread(0);
 	return 0;
 }
@@ -143,24 +143,24 @@ DWORD mac_client_input_thread(void* param)
 	wMessage message;
 	wMessageQueue* queue;
 	rdpContext* context = (rdpContext*) param;
-	
+
 	status = 1;
 	queue = freerdp_get_message_queue(context->instance, FREERDP_INPUT_MESSAGE_QUEUE);
-	
+
 	while (MessageQueue_Wait(queue))
 	{
 		while (MessageQueue_Peek(queue, &message, TRUE))
 		{
 			status = freerdp_message_queue_process_message(context->instance, FREERDP_INPUT_MESSAGE_QUEUE, &message);
-			
+
 			if (!status)
 				break;
 		}
-		
+
 		if (!status)
 			break;
 	}
-	
+
 	ExitThread(0);
 	return 0;
 }
@@ -183,21 +183,21 @@ DWORD mac_client_thread(void* param)
 		freerdp* instance = context->instance;
 		MRDPView* view = mfc->view;
 		rdpSettings* settings = context->settings;
-		
+
 		status = freerdp_connect(context->instance);
-		
+
 		if (!status)
 		{
 			[view setIs_connected:0];
 			return 0;
 		}
-		
+
 		[view setIs_connected:1];
-		
+
 		nCount = 0;
-		
+
 		events[nCount++] = mfc->stopEvent;
-		
+
 		if (settings->AsyncUpdate)
 		{
 			if (!(updateThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) mac_client_update_thread, context, 0, NULL)))
@@ -215,7 +215,7 @@ DWORD mac_client_thread(void* param)
 			}
 			events[nCount++] = updateEvent;
 		}
-		
+
 		if (settings->AsyncInput)
 		{
 			if (!(inputThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) mac_client_input_thread, context, 0, NULL)))
@@ -324,12 +324,12 @@ disconnect:
 - (id)initWithFrame:(NSRect)frame
 {
 	self = [super initWithFrame:frame];
-	
+
 	if (self)
 	{
 		// Initialization code here.
 	}
-	
+
 	return self;
 }
 
@@ -375,10 +375,10 @@ disconnect:
 - (void) mouseMoved:(NSEvent *)event
 {
 	[super mouseMoved:event];
-	
+
 	if (!is_connected)
 		return;
-	
+
 	NSPoint loc = [event locationInWindow];
 	int x = (int) loc.x;
 	int y = (int) loc.y;
@@ -389,100 +389,100 @@ disconnect:
 - (void)mouseDown:(NSEvent *) event
 {
 	[super mouseDown:event];
-	
+
 	if (!is_connected)
 		return;
-	
+
 	NSPoint loc = [event locationInWindow];
 	int x = (int) loc.x;
 	int y = (int) loc.y;
-	
+
 	mf_scale_mouse_event(context, instance->input, PTR_FLAGS_DOWN | PTR_FLAGS_BUTTON1, x, y);
 }
 
 - (void) mouseUp:(NSEvent *) event
 {
 	[super mouseUp:event];
-	
+
 	if (!is_connected)
 		return;
-	
+
 	NSPoint loc = [event locationInWindow];
 	int x = (int) loc.x;
 	int y = (int) loc.y;
-	
+
 	mf_scale_mouse_event(context, instance->input, PTR_FLAGS_BUTTON1, x, y);
 }
 
 - (void) rightMouseDown:(NSEvent *)event
 {
 	[super rightMouseDown:event];
-	
+
 	if (!is_connected)
 		return;
-	
+
 	NSPoint loc = [event locationInWindow];
 	int x = (int) loc.x;
 	int y = (int) loc.y;
-	
+
 	mf_scale_mouse_event(context, instance->input, PTR_FLAGS_DOWN | PTR_FLAGS_BUTTON2, x, y);
 }
 
 - (void) rightMouseUp:(NSEvent *)event
 {
 	[super rightMouseUp:event];
-	
+
 	if (!is_connected)
 		return;
-	
+
 	NSPoint loc = [event locationInWindow];
 	int x = (int) loc.x;
 	int y = (int) loc.y;
-	
+
 	mf_scale_mouse_event(context, instance->input, PTR_FLAGS_BUTTON2, x, y);
 }
 
 - (void) otherMouseDown:(NSEvent *)event
 {
 	[super otherMouseDown:event];
-	
+
 	if (!is_connected)
 		return;
-	
+
 	NSPoint loc = [event locationInWindow];
 	int x = (int) loc.x;
 	int y = (int) loc.y;
-	
+
 	mf_scale_mouse_event(context, instance->input, PTR_FLAGS_DOWN | PTR_FLAGS_BUTTON3, x, y);
 }
 
 - (void) otherMouseUp:(NSEvent *)event
 {
 	[super otherMouseUp:event];
-	
+
 	if (!is_connected)
 		return;
-	
+
 	NSPoint loc = [event locationInWindow];
 	int x = (int) loc.x;
 	int y = (int) loc.y;
-	
+
 	mf_scale_mouse_event(context, instance->input, PTR_FLAGS_BUTTON3, x, y);
 }
 
 - (void) scrollWheel:(NSEvent *)event
 {
 	UINT16 flags;
-	
+
 	[super scrollWheel:event];
-	
+
 	if (!is_connected)
 		return;
-	
+
 	NSPoint loc = [event locationInWindow];
 	int x = (int) loc.x;
 	int y = (int) loc.y;
-	
+
 	flags = PTR_FLAGS_WHEEL;
 
 	/* 1 event = 120 units */
@@ -502,14 +502,14 @@ disconnect:
 - (void) mouseDragged:(NSEvent *)event
 {
 	[super mouseDragged:event];
-	
+
 	if (!is_connected)
 		return;
-	
+
 	NSPoint loc = [event locationInWindow];
 	int x = (int) loc.x;
 	int y = (int) loc.y;
-	
+
 	// send mouse motion event to RDP server
 	mf_scale_mouse_event(context, instance->input, PTR_FLAGS_MOVE, x, y);
 }
@@ -537,7 +537,7 @@ DWORD fixKeyCode(DWORD keyCode, unichar keyChar, enum APPLE_KEYBOARD_TYPE type)
 	 * provided by OS X and check for a character to key code mismatch: for instance,
 	 * when the output character is '0' for the key code corresponding to the 'i' key.
 	 */
-	
+
 #if 0
 	switch (keyChar)
 	{
@@ -546,7 +546,7 @@ DWORD fixKeyCode(DWORD keyCode, unichar keyChar, enum APPLE_KEYBOARD_TYPE type)
 			if (keyCode == APPLE_VK_ISO_Section)
 				keyCode = APPLE_VK_ANSI_Grave;
 			break;
-			
+
 		case 0x00ED: /* latin small letter i with acute */
 		case 0x00CD: /* latin capital letter i with acute */
 			if (keyCode == APPLE_VK_ANSI_Grave)
@@ -554,9 +554,9 @@ DWORD fixKeyCode(DWORD keyCode, unichar keyChar, enum APPLE_KEYBOARD_TYPE type)
 			break;
 	}
 #endif
-	
+
 	/* Perform keycode correction for all ISO keyboards */
-	
+
 	if (type == APPLE_KEYBOARD_TYPE_ISO)
 	{
 		if (keyCode == APPLE_VK_ANSI_Grave)
@@ -564,7 +564,7 @@ DWORD fixKeyCode(DWORD keyCode, unichar keyChar, enum APPLE_KEYBOARD_TYPE type)
 		else if (keyCode == APPLE_VK_ISO_Section)
 			keyCode = APPLE_VK_ANSI_Grave;
 	}
-	
+
 	return keyCode;
 }
 
@@ -576,32 +576,32 @@ DWORD fixKeyCode(DWORD keyCode, unichar keyChar, enum APPLE_KEYBOARD_TYPE type)
 	DWORD scancode;
 	unichar keyChar;
 	NSString* characters;
-	
+
 	if (!is_connected)
 		return;
-	
+
 	keyFlags = KBD_FLAGS_DOWN;
 	keyCode = [event keyCode];
-	
+
 	characters = [event charactersIgnoringModifiers];
-	
+
 	if ([characters length] > 0)
 	{
 		keyChar = [characters characterAtIndex:0];
 		keyCode = fixKeyCode(keyCode, keyChar, mfc->appleKeyboardType);
 	}
-	
+
 	vkcode = GetVirtualKeyCodeFromKeycode(keyCode + 8, KEYCODE_TYPE_APPLE);
 	scancode = GetVirtualScanCodeFromVirtualKeyCode(vkcode, 4);
 	keyFlags |= (scancode & KBDEXT) ? KBDEXT : 0;
 	scancode &= 0xFF;
 	vkcode &= 0xFF;
-	
+
 #if 0
 	WLog_ERR(TAG,  "keyDown: keyCode: 0x%04X scancode: 0x%04X vkcode: 0x%04X keyFlags: %d name: %s",
 	       keyCode, scancode, vkcode, keyFlags, GetVirtualKeyName(vkcode));
 #endif
-	
+
 	freerdp_input_send_keyboard_event(instance->input, keyFlags, scancode);
 }
 
@@ -619,9 +619,9 @@ DWORD fixKeyCode(DWORD keyCode, unichar keyChar, enum APPLE_KEYBOARD_TYPE type)
 
 	keyFlags = KBD_FLAGS_RELEASE;
 	keyCode = [event keyCode];
-	
+
 	characters = [event charactersIgnoringModifiers];
-	
+
 	if ([characters length] > 0)
 	{
 		keyChar = [characters characterAtIndex:0];
@@ -746,20 +746,20 @@ DWORD fixKeyCode(DWORD keyCode, unichar keyChar, enum APPLE_KEYBOARD_TYPE type)
 {
 	if (!context)
 		return;
-    
+
 	if (self->bitmap_context)
 	{
 		CGContextRef cgContext = [[NSGraphicsContext currentContext] graphicsPort];
 		CGImageRef cgImage = CGBitmapContextCreateImage(self->bitmap_context);
-		
+
 		CGContextSaveGState(cgContext);
-		
+
 		CGContextClipToRect(cgContext, CGRectMake(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height));
 
 		CGContextDrawImage(cgContext, CGRectMake(0, 0, [self bounds].size.width, [self bounds].size.height), cgImage);
-		
+
 		CGContextRestoreGState(cgContext);
-		
+
 		CGImageRelease(cgImage);
 	}
 	else
@@ -780,55 +780,55 @@ DWORD fixKeyCode(DWORD keyCode, unichar keyChar, enum APPLE_KEYBOARD_TYPE type)
 	NSData* formatData;
 	const char* formatType;
 	NSPasteboardItem* item;
-	
+
 	changeCount = (int) [pasteboard_rd changeCount];
-	
+
 	if (changeCount == pasteboard_changecount)
 		return;
-	
+
 	pasteboard_changecount = changeCount;
-	
+
 	NSArray* items = [pasteboard_rd pasteboardItems];
-		
+
 	if ([items count] < 1)
 		return;
-	
+
 	item = [items objectAtIndex:0];
-	
+
 	/**
 	 * System-Declared Uniform Type Identifiers:
 	 * https://developer.apple.com/library/ios/documentation/Miscellaneous/Reference/UTIRef/Articles/System-DeclaredUniformTypeIdentifiers.html
 	 */
-	
+
 	formatMatch = FALSE;
-	
+
 	for (NSString* type in [item types])
 	{
 		formatType = [type UTF8String];
-		
+
 		if (strcmp(formatType, "public.utf8-plain-text") == 0)
 		{
 			formatData = [item dataForType:type];
 			formatId = ClipboardRegisterFormat(mfc->clipboard, "UTF8_STRING");
-		
+
 			/* length does not include null terminator */
-			
+
 			size = (UINT32) [formatData length];
 			data = (BYTE*) malloc(size + 1);
 			[formatData getBytes:data length:size];
 			data[size] = '\0';
 			size++;
-			
+
 			ClipboardSetData(mfc->clipboard, formatId, (void*) data, size);
 			formatMatch = TRUE;
-			
+
 			break;
 		}
 	}
-	
+
 	if (!formatMatch)
 		ClipboardEmpty(mfc->clipboard);
-	
+
 	if (mfc->clipboardSync)
 		mac_cliprdr_send_client_format_list(mfc->cliprdr);
 }
@@ -838,9 +838,9 @@ DWORD fixKeyCode(DWORD keyCode, unichar keyChar, enum APPLE_KEYBOARD_TYPE type)
 	dispatch_async(dispatch_get_main_queue(), ^{
 		[self->pasteboard_timer invalidate];
 	});
-	
+
 	NSArray* trackingAreas = self.trackingAreas;
-	
+
 	for (NSTrackingArea* ta in trackingAreas)
 	{
 		[self removeTrackingArea:ta];
@@ -852,7 +852,7 @@ DWORD fixKeyCode(DWORD keyCode, unichar keyChar, enum APPLE_KEYBOARD_TYPE type)
 	dispatch_async(dispatch_get_main_queue(), ^{
 		self->pasteboard_timer = [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(onPasteboardTimerFired:) userInfo:nil repeats:YES];
 	});
-	
+
 	NSTrackingArea * trackingArea = [[NSTrackingArea alloc] initWithRect:[self visibleRect] options:NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingCursorUpdate | NSTrackingEnabledDuringMouseDrag | NSTrackingActiveWhenFirstResponder owner:self userInfo:nil];
 	[self addTrackingArea:trackingArea];
 	[trackingArea release];
@@ -870,10 +870,10 @@ void mac_OnChannelConnectedEventHandler(rdpContext* context, ChannelConnectedEve
 {
 	rdpSettings* settings = context->settings;
 	mfContext* mfc = (mfContext*) context;
-	
+
 	if (strcmp(e->name, RDPEI_DVC_CHANNEL_NAME) == 0)
 	{
-		
+
 	}
 	else if (strcmp(e->name, RDPGFX_DVC_CHANNEL_NAME) == 0)
 	{
@@ -886,22 +886,22 @@ void mac_OnChannelConnectedEventHandler(rdpContext* context, ChannelConnectedEve
 	}
 	else if (strcmp(e->name, ENCOMSP_SVC_CHANNEL_NAME) == 0)
 	{
-		
+
 	}
-    else if (strcmp(e->name, RAIL_SVC_CHANNEL_NAME) == 0)
-    {
-        mac_rail_init(mfc, (RailClientContext*) e->pInterface);
-    }
+	else if (strcmp(e->name, RAIL_SVC_CHANNEL_NAME) == 0)
+	{
+		mac_rail_init(mfc, (RailClientContext*) e->pInterface);
+	}
 }
 
 void mac_OnChannelDisconnectedEventHandler(rdpContext* context, ChannelDisconnectedEventArgs* e)
 {
 	rdpSettings* settings = context->settings;
 	mfContext* mfc = (mfContext*) context;
-	
+
 	if (strcmp(e->name, RDPEI_DVC_CHANNEL_NAME) == 0)
 	{
-		
+
 	}
 	else if (strcmp(e->name, RDPGFX_DVC_CHANNEL_NAME) == 0)
 	{
@@ -914,12 +914,12 @@ void mac_OnChannelDisconnectedEventHandler(rdpContext* context, ChannelDisconnec
 	}
 	else if (strcmp(e->name, ENCOMSP_SVC_CHANNEL_NAME) == 0)
 	{
-		
+
 	}
-    else if (strcmp(e->name, RAIL_SVC_CHANNEL_NAME) == 0)
-    {
-        mac_rail_uninit(mfc, (RailClientContext*) e->pInterface);
-    }
+	else if (strcmp(e->name, RAIL_SVC_CHANNEL_NAME) == 0)
+	{
+		mac_rail_uninit(mfc, (RailClientContext*) e->pInterface);
+	}
 }
 
 BOOL mac_pre_connect(freerdp* instance)
@@ -969,14 +969,14 @@ BOOL mac_pre_connect(freerdp* instance)
 	settings->OrderSupport[NEG_POLYGON_CB_INDEX] = FALSE;
 	settings->OrderSupport[NEG_ELLIPSE_SC_INDEX] = FALSE;
 	settings->OrderSupport[NEG_ELLIPSE_CB_INDEX] = FALSE;
-    
+
     // TODO: dirty hack, get from command line args
     settings->RemoteApplicationMode = TRUE;
     settings->RemoteApplicationProgram = strdup("||notepad");
-	
+
 	PubSub_SubscribeChannelConnected(instance->context->pubSub,
 					 (pChannelConnectedEventHandler) mac_OnChannelConnectedEventHandler);
-	
+
 	PubSub_SubscribeChannelDisconnected(instance->context->pubSub,
 					    (pChannelDisconnectedEventHandler) mac_OnChannelDisconnectedEventHandler);
 
@@ -985,7 +985,7 @@ BOOL mac_pre_connect(freerdp* instance)
 
 	if (freerdp_channels_pre_connect(instance->context->channels, instance) != CHANNEL_RC_OK)
 		return FALSE;
-    
+
 	return TRUE;
 }
 
@@ -998,7 +998,7 @@ BOOL mac_post_connect(freerdp* instance)
 	mfContext* mfc = (mfContext*) instance->context;
 
 	MRDPView* view = (MRDPView*) mfc->view;
-	
+
 	ZeroMemory(&rdp_pointer, sizeof(rdpPointer));
 	rdp_pointer.size = sizeof(rdpPointer);
 	rdp_pointer.New = mf_Pointer_New;
@@ -1006,23 +1006,23 @@ BOOL mac_post_connect(freerdp* instance)
 	rdp_pointer.Set = mf_Pointer_Set;
 	rdp_pointer.SetNull = mf_Pointer_SetNull;
 	rdp_pointer.SetDefault = mf_Pointer_SetDefault;
-	
+
 	settings = instance->settings;
-	
+
 	flags = CLRCONV_ALPHA | CLRCONV_RGB555;
 
 	//if (settings->ColorDepth > 16)
 		flags |= CLRBUF_32BPP;
 	//else
 	//	flags |= CLRBUF_16BPP;
-	
+
 	if (!gdi_init(instance, flags, NULL))
 		return FALSE;
-	
+
 	gdi = instance->context->gdi;
 
 	view->bitmap_context = mac_create_bitmap_context(instance->context);
-	
+
 	pointer_cache_register_callbacks(instance->update);
 	graphics_register_pointer(instance->context->graphics, &rdp_pointer);
 
@@ -1031,15 +1031,15 @@ BOOL mac_post_connect(freerdp* instance)
 
 	/* setup pasteboard (aka clipboard) for copy operations (write only) */
 	view->pasteboard_wr = [NSPasteboard generalPasteboard];
-	
+
 	/* setup pasteboard for read operations */
 	dispatch_async(dispatch_get_main_queue(), ^{
 		view->pasteboard_rd = [NSPasteboard generalPasteboard];
 		view->pasteboard_changecount = -1;
 	});
-	
+
 	[view resume];
-	
+
 	mfc->appleKeyboardType = mac_detect_keyboard_type();
 
 	return TRUE;
@@ -1085,12 +1085,12 @@ BOOL mf_Pointer_New(rdpContext* context, rdpPointer* pointer)
 	MRDPCursor* mrdpCursor = [[MRDPCursor alloc] init];
 	mfContext* mfc = (mfContext*) context;
 	MRDPView* view = (MRDPView*) mfc->view;
-	
+
 	rect.size.width = pointer->width;
 	rect.size.height = pointer->height;
 	rect.origin.x = pointer->xPos;
 	rect.origin.y = pointer->yPos;
-	
+
 	cursor_data = (BYTE*) malloc(rect.size.width * rect.size.height * 4);
 	if (!cursor_data)
 		return FALSE;
@@ -1121,21 +1121,21 @@ BOOL mf_Pointer_New(rdpContext* context, rdpPointer* pointer)
 											bytesPerRow:rect.size.width * 4
 											bitsPerPixel:0];
 	mrdpCursor->bmiRep = bmiRep;
-	
+
 	/* create an image using above representation */
 	image = [[NSImage alloc] initWithSize:[bmiRep size]];
 	[image addRepresentation: bmiRep];
 	[image setFlipped:NO];
 	mrdpCursor->nsImage = image;
-	
+
 	/* need hotspot to create cursor */
 	hotSpot.x = pointer->xPos;
 	hotSpot.y = pointer->yPos;
-	
+
 	cursor = [[NSCursor alloc] initWithImage: image hotSpot:hotSpot];
 	mrdpCursor->nsCursor = cursor;
 	mrdpCursor->pointer = pointer;
-	
+
 	/* save cursor for later use in mf_Pointer_Set() */
 	ma = view->cursors;
 	[ma addObject:mrdpCursor];
@@ -1147,7 +1147,7 @@ void mf_Pointer_Free(rdpContext* context, rdpPointer* pointer)
 	mfContext* mfc = (mfContext*) context;
 	MRDPView* view = (MRDPView*) mfc->view;
 	NSMutableArray* ma = view->cursors;
-	
+
 	for (MRDPCursor* cursor in ma)
 	{
 		if (cursor->pointer == pointer)
@@ -1199,9 +1199,9 @@ CGContextRef mac_create_bitmap_context(rdpContext* context)
 {
 	CGContextRef bitmap_context;
 	rdpGdi* gdi = context->gdi;
-	
+
 	CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-	
+
 	if (gdi->bytesPerPixel == 2)
 	{
 		bitmap_context = CGBitmapContextCreate(gdi->primary_buffer,
@@ -1214,19 +1214,19 @@ CGContextRef mac_create_bitmap_context(rdpContext* context)
 						       gdi->width, gdi->height, 8, gdi->width * gdi->bytesPerPixel,
 						       colorSpace, kCGBitmapByteOrder32Little | kCGImageAlphaNoneSkipFirst);
 	}
-	
+
 	CGColorSpaceRelease(colorSpace);
-	
+
 	return bitmap_context;
 }
 
 BOOL mac_begin_paint(rdpContext* context)
 {
 	rdpGdi* gdi = context->gdi;
-	
+
 	if (!gdi)
 		return FALSE;
-	
+
 	gdi->primary->hdc->hwnd->invalid->null = 1;
 	return TRUE;
 }
@@ -1243,7 +1243,7 @@ BOOL mac_end_paint(rdpContext* context)
 	MRDPView* view = (MRDPView*) mfc->view;
 
 	gdi = context->gdi;
-	
+
 	if (!gdi)
 		return FALSE;
 
@@ -1254,7 +1254,7 @@ BOOL mac_end_paint(rdpContext* context)
 
 	if ((!context) || (!context->gdi))
 		return FALSE;
-	
+
 	if (context->gdi->primary->hdc->hwnd->invalid->null)
 		return TRUE;
 
@@ -1264,7 +1264,7 @@ BOOL mac_end_paint(rdpContext* context)
         y = gdi->primary->hdc->hwnd->invalid->y;
         w = gdi->primary->hdc->hwnd->invalid->w;
         h = gdi->primary->hdc->hwnd->invalid->h;
-        
+
         mac_rail_paint(mfc, x, y, x + w, y + h);
         gdi->primary->hdc->hwnd->ninvalid = 0;
         return TRUE;
@@ -1306,39 +1306,39 @@ BOOL mac_desktop_resize(rdpContext* context)
 	mfContext* mfc = (mfContext*) context;
 	MRDPView* view = (MRDPView*) mfc->view;
 	rdpSettings* settings = context->settings;
-	
+
 	/**
 	 * TODO: Fix resizing race condition. We should probably implement a message to be
 	 * put on the update message queue to be able to properly flush pending updates,
 	 * resize, and then continue with post-resizing graphical updates.
 	 */
-	
+
 	CGContextRef old_context = view->bitmap_context;
 	view->bitmap_context = NULL;
 	CGContextRelease(old_context);
-	
+
 	mfc->width = settings->DesktopWidth;
 	mfc->height = settings->DesktopHeight;
-	
+
 	if (!gdi_resize(context->gdi, mfc->width, mfc->height))
 		return FALSE;
-	
+
 	view->bitmap_context = mac_create_bitmap_context(context);
-	
+
 	if (!view->bitmap_context)
 		return FALSE;
-	
+
 	mfc->client_width = mfc->width;
 	mfc->client_height = mfc->height;
-	
+
 	[view setFrameSize:NSMakeSize(mfc->width, mfc->height)];
-	
+
 	EventArgsInit(&e, "mfreerdp");
 	e.width = settings->DesktopWidth;
 	e.height = settings->DesktopHeight;
-	
+
 	PubSub_OnResizeWindow(context->pubSub, context, &e);
-	
+
 	return TRUE;
 }
 
@@ -1347,16 +1347,16 @@ static void update_activity_cb(freerdp* instance)
 	int status;
 	wMessage message;
 	wMessageQueue* queue;
-	
+
 	status = 1;
 	queue = freerdp_get_message_queue(instance, FREERDP_UPDATE_MESSAGE_QUEUE);
-	
+
 	if (queue)
 	{
 		while (MessageQueue_Peek(queue, &message, TRUE))
 		{
 			status = freerdp_message_queue_process_message(instance, FREERDP_UPDATE_MESSAGE_QUEUE, &message);
-			
+
 			if (!status)
 				break;
 		}
