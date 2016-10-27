@@ -970,10 +970,6 @@ BOOL mac_pre_connect(freerdp* instance)
 	settings->OrderSupport[NEG_ELLIPSE_SC_INDEX] = FALSE;
 	settings->OrderSupport[NEG_ELLIPSE_CB_INDEX] = FALSE;
 
-    // TODO: dirty hack, get from command line args
-    settings->RemoteApplicationMode = TRUE;
-    settings->RemoteApplicationProgram = strdup("||notepad");
-
 	PubSub_SubscribeChannelConnected(instance->context->pubSub,
 					 (pChannelConnectedEventHandler) mac_OnChannelConnectedEventHandler);
 

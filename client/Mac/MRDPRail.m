@@ -456,7 +456,7 @@ void mac_rail_init(mfContext* mfc, RailClientContext* rail)
 	rail->custom = (void*) mfc;
 	mfc->rail = rail;
 	window = mfc->context.update->window;
-	window->context = &mfc->context;
+	window->context = &(mfc->context);
 	window->WindowCreate = mac_window_common;
 	window->WindowUpdate = mac_window_common;
 	window->WindowDelete = mac_window_delete;
