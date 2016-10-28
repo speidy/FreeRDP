@@ -1,38 +1,77 @@
 
+/**
+ * FreeRDP: A Remote Desktop Protocol Implementation
+ * MacFreeRDP
+ *
+ * Copyright 2016 Idan Freiberg <speidy@gmail.com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #import <Foundation/Foundation.h>
 
 #import "mfreerdp.h"
 #import "MRDPWindow.h"
+#import "MRDPWindowView.h"
 #import "freerdp/log.h"
 
 #define TAG CLIENT_TAG("mac")
+
+void windows_to_apple_coords(MRDPWindowView* view, NSRect* r)
+{
+    r->origin.y = [view frame].size.height - (r->origin.y + r->size.height);
+}
 
 int mf_AppWindowInit(mfContext* mfc, mfAppWindow* appWindow)
 {
 	WLog_INFO(TAG, "mf_AppWindowInit");
 	NSRect rect;
-	NSWindow *window = NULL;
-
+    NSWindow* window = NULL;
+    MRDPWindowView *view = NULL;
+    MRDPView *mainView = mfc->view;
+    
 	rect = NSMakeRect(appWindow->x, appWindow->height - appWindow->y, appWindow->width, appWindow->height);
-	appWindow->frame = rect;
-
-	window = [[[NSWindow alloc] initWithContentRect:appWindow->frame
-			styleMask:NSBorderlessWindowMask
-			backing:NSBackingStoreBuffered
-			defer:NO] autorelease];
-	[window setTitle: [NSString stringWithUTF8String: appWindow->title]];
-	[window setBackgroundColor:[NSColor blueColor]];
-	[window makeKeyAndOrderFront:NSApp];
-
-	appWindow->handle = window;
-
-	return 1;
+    
+    view = [[MRDPWindowView alloc] initWithFrame:rect];
+    [view init_view:mfc];
+    
+    window = [[[NSWindow alloc] initWithContentRect:rect
+                                styleMask:NSBorderlessWindowMask
+                                backing:NSBackingStoreBuffered
+                                defer:NO] autorelease];
+    [window setTitle: [NSString stringWithUTF8String: appWindow->title]];
+    [window setBackgroundColor:[NSColor blueColor]];
+    [window makeKeyAndOrderFront:NSApp];
+    [window setContentView: view];
+    
+    appWindow->handle = window;
+    return 1;
 }
 
 void mf_DestroyWindow(mfContext* mfc, mfAppWindow* appWindow)
 {
 	WLog_INFO(TAG, "mf_DestroyWindow");
-	[appWindow->handle close];
+    MRDPWindowView* view;
+    NSWindow *window;
+    
+    window = appWindow->handle;
+    view = [appWindow->handle contentView];
+    
+    [view dealloc];
+    [window close];
+    [window dealloc];
+    
+    appWindow->handle = NULL;
 }
 
 void mf_MoveWindow(mfContext* mfc, mfAppWindow* appWindow,
@@ -55,7 +94,7 @@ void mf_UpdateWindowArea(mfContext* mfc, mfAppWindow* appWindow,
 	int ax, ay;
 	rdpSettings *rdpSettings = mfc->context.settings;
 	NSWindow *window = appWindow->handle;
-	NSRect rect = [window frame];
+    NSRect rect;
 
 	ax = x + appWindow->windowOffsetX;
 	ay = y + appWindow->windowOffsetY;
@@ -72,6 +111,12 @@ void mf_UpdateWindowArea(mfContext* mfc, mfAppWindow* appWindow,
 //  	  XPutImage(mfc->display, mfc->primary, appWindow->gc, mfc->image,
 //  				ax, ay, ax, ay, width, height);
 	}
+
+    rect = NSMakeRect(ax, ay, width, height);
+    MRDPWindowView *view = [window contentView];
+    windows_to_apple_coords(view, &rect);
+    [view setNeedsDisplayInRect:rect];
+    
 
 //    XCopyArea(mfc->display, mfc->primary, appWindow->handle, appWindow->gc,
 //  			ax, ay, width, height, x, y);
@@ -97,3 +142,5 @@ void mf_ShowWindow(mfContext* mfc, mfAppWindow* appWindow, BYTE state)
 {
 	WLog_INFO(TAG, "mf_ShowWindow, state: 0x%08x", state);
 }
+
+

@@ -41,7 +41,8 @@ set(${MODULE_PREFIX}_OBJECTIVE_SOURCES
 	Clipboard.m
 	PasswordDialog.m
 	MRDPRail.m
-	MRDPWindow.m)
+	MRDPWindow.m
+	MRDPWindowView.m)
 
 list(APPEND ${MODULE_PREFIX}_SOURCES ${${MODULE_PREFIX}_OBJECTIVE_SOURCES})
 
@@ -54,7 +55,8 @@ set(${MODULE_PREFIX}_HEADERS
 	Clipboard.h
 	PasswordDialog.h
 	MRDPRail.h
-	MRDPWindow.h)
+	MRDPWindow.h
+	MRDPWindowView.h)
 
 set(${MODULE_PREFIX}_RESOURCES "en.lproj/InfoPlist.strings")
 

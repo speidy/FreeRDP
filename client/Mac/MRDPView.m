@@ -321,6 +321,11 @@ disconnect:
 	}
 }
 
+- (CGContextRef) getBitmapContext
+{
+    return self->bitmap_context;
+}
+
 - (id)initWithFrame:(NSRect)frame
 {
 	self = [super initWithFrame:frame];
@@ -745,7 +750,9 @@ DWORD fixKeyCode(DWORD keyCode, unichar keyChar, enum APPLE_KEYBOARD_TYPE type)
 - (void) drawRect:(NSRect)rect
 {
 	if (!context)
+    {
 		return;
+    }
 
 	if (self->bitmap_context)
 	{
@@ -1198,6 +1205,7 @@ CGContextRef mac_create_bitmap_context(rdpContext* context)
 
 	CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
 
+    printf("gdi->width %d gdi->height %d\n", gdi->width, gdi->height);
 	if (gdi->bytesPerPixel == 2)
 	{
 		bitmap_context = CGBitmapContextCreate(gdi->primary_buffer,

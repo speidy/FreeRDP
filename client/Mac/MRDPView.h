@@ -66,6 +66,7 @@
 - (void) pause;
 - (void) resume;
 - (void) releaseResources;
+- (CGContextRef) getBitmapContext;
 
 @property (assign) int is_connected;
 
