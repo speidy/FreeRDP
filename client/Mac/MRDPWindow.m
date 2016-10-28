@@ -38,7 +38,6 @@ int mf_AppWindowInit(mfContext* mfc, mfAppWindow* appWindow)
 	NSRect rect;
     NSWindow* window = NULL;
     MRDPWindowView *view = NULL;
-    MRDPView *mainView = mfc->view;
     
 	rect = NSMakeRect(appWindow->x, appWindow->height - appWindow->y, appWindow->width, appWindow->height);
     
@@ -67,9 +66,9 @@ void mf_DestroyWindow(mfContext* mfc, mfAppWindow* appWindow)
     window = appWindow->handle;
     view = [appWindow->handle contentView];
     
-    [view dealloc];
     [window close];
     [window dealloc];
+    [view dealloc];
     
     appWindow->handle = NULL;
 }
@@ -93,9 +92,13 @@ void mf_UpdateWindowArea(mfContext* mfc, mfAppWindow* appWindow,
 	WLog_INFO(TAG, "mf_UpdateWindowArea");
 	int ax, ay;
 	rdpSettings *rdpSettings = mfc->context.settings;
-	NSWindow *window = appWindow->handle;
+    NSWindow *window;
+    MRDPWindowView *view;
     NSRect rect;
 
+    window = appWindow->handle;
+    view = [window contentView];
+    
 	ax = x + appWindow->windowOffsetX;
 	ay = y + appWindow->windowOffsetY;
 
@@ -113,7 +116,6 @@ void mf_UpdateWindowArea(mfContext* mfc, mfAppWindow* appWindow,
 	}
 
     rect = NSMakeRect(ax, ay, width, height);
-    MRDPWindowView *view = [window contentView];
     windows_to_apple_coords(view, &rect);
     [view setNeedsDisplayInRect:rect];
     
