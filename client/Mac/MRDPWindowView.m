@@ -31,6 +31,15 @@
     [self init_bitmap_context];
 }
 
+- (void)resize_view
+{
+    CGContextRef old_context = bitmap_context;
+    CGContextRelease(old_context);
+    bitmap_context = NULL;
+    
+    [self init_bitmap_context];
+}
+
 - (void)init_bitmap_context
 {
     rdpGdi* gdi = mfc->context.gdi;

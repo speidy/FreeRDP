@@ -34,6 +34,7 @@
 }
 
 - (void)init_view: (mfContext*) context appWindow: (mfAppWindow*) appWindow;
+- (void)resize_view;
 @end
 
 

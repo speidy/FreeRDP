@@ -1270,8 +1270,9 @@ BOOL mac_end_paint(rdpContext* context)
         h = gdi->primary->hdc->hwnd->invalid->h;
 
         mac_rail_paint(mfc, x, y, x + w, y + h);
-        gdi->primary->hdc->hwnd->ninvalid = 0;
-        return TRUE;
+//        gdi->primary->hdc->hwnd->ninvalid = 0;
+        
+//        return TRUE;
     }
 
 	invalid = gdi->primary->hdc->hwnd->invalid;

@@ -61,7 +61,7 @@ void mf_DestroyWindow(mfContext* mfc, mfAppWindow* appWindow)
 {
 	WLog_INFO(TAG, "mf_DestroyWindow");
     MRDPWindowView* view;
-    NSWindow *window;
+    NSWindow* window;
     
     window = appWindow->handle;
     view = [appWindow->handle contentView];
@@ -77,13 +77,39 @@ void mf_MoveWindow(mfContext* mfc, mfAppWindow* appWindow,
 		int x, int y, int width, int height)
 {
 	WLog_INFO(TAG, "mf_MoveWindow x: %d y: %d width: %d height: %d", x, y, width, height);
-	NSRect rect = [appWindow->handle frame];
+    MRDPWindowView* view;
+    NSWindow* window;
+    NSRect rect;
+    BOOL resize = FALSE;
+    
+    window = appWindow->handle;
+    view = [appWindow->handle contentView];
 
-	rect.origin.x = x;
-	rect.origin.y = height - y;
-	rect.size = CGSizeMake(width, height);
+    if ((width * height) < 1)
+    {
+        return;
+    }
 
-	[appWindow->handle setFrame:rect display:YES animate:YES];
+    if ((appWindow->width != width) || (appWindow->height != height))
+    {
+        resize = TRUE;
+    }
+
+    appWindow->x = x;
+    appWindow->y = y;
+    appWindow->width = width;
+    appWindow->height = height;
+
+    rect = NSMakeRect(x, height - y, width, height);
+
+    if (resize)
+    {
+        [view resize_view];
+    }
+    
+    [window setFrame:rect display:YES animate:YES];
+    
+    mf_UpdateWindowArea(mfc, appWindow, 0, 0, width, height);
 }
 
 void mf_UpdateWindowArea(mfContext* mfc, mfAppWindow* appWindow,
