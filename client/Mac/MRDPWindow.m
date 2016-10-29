@@ -42,7 +42,7 @@ int mf_AppWindowInit(mfContext* mfc, mfAppWindow* appWindow)
 	rect = NSMakeRect(appWindow->x, appWindow->height - appWindow->y, appWindow->width, appWindow->height);
     
     view = [[MRDPWindowView alloc] initWithFrame:rect];
-    [view init_view:mfc];
+    [view init_view:mfc appWindow:appWindow];
     
     window = [[[NSWindow alloc] initWithContentRect:rect
                                 styleMask:NSBorderlessWindowMask
@@ -119,7 +119,6 @@ void mf_UpdateWindowArea(mfContext* mfc, mfAppWindow* appWindow,
     windows_to_apple_coords(view, &rect);
     [view setNeedsDisplayInRect:rect];
     
-
 //    XCopyArea(mfc->display, mfc->primary, appWindow->handle, appWindow->gc,
 //  			ax, ay, width, height, x, y);
 

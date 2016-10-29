@@ -22,38 +22,36 @@
 
 @implementation MRDPWindowView
 
-CGContextRef windowview_create_bitmap_context(rdpContext* context)
+
+- (void)init_view: (mfContext*) context appWindow:(mfAppWindow *)appWindow
 {
-    CGContextRef bitmap_context;
-    rdpGdi* gdi = context->gdi;
+    self->mfc = context;
+    self->mfAppWindow = appWindow;
+    
+    [self init_bitmap_context];
+}
+
+- (void)init_bitmap_context
+{
+    rdpGdi* gdi = mfc->context.gdi;
     
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
     
     if (gdi->bytesPerPixel == 2)
     {
         bitmap_context = CGBitmapContextCreate(gdi->primary_buffer,
-                                               gdi->width, gdi->height, 5, gdi->width * gdi->bytesPerPixel,
+                                               mfAppWindow->width, mfAppWindow->height, 5, gdi->width * gdi->bytesPerPixel,
                                                colorSpace, kCGBitmapByteOrder16Little | kCGImageAlphaNoneSkipFirst);
     }
     else
     {
         bitmap_context = CGBitmapContextCreate(gdi->primary_buffer,
-                                               gdi->width, gdi->height, 8, gdi->width * gdi->bytesPerPixel,
+                                               mfAppWindow->width, mfAppWindow->height, 8, gdi->width * gdi->bytesPerPixel,
                                                colorSpace, kCGBitmapByteOrder32Little | kCGImageAlphaNoneSkipFirst);
     }
     
     CGColorSpaceRelease(colorSpace);
-    
-    return bitmap_context;
 }
-
-
-- (void)init_view: (mfContext*) context
-{
-    self->mfc = context;
-    self->bitmap_context = windowview_create_bitmap_context(&self->mfc->context);
-}
-
 
 - (void) drawRect:(NSRect)rect
 {
@@ -66,7 +64,7 @@ CGContextRef windowview_create_bitmap_context(rdpContext* context)
         
         CGContextClipToRect(cgContext, CGRectMake(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height));
         
-        CGContextDrawImage(cgContext, [self bounds], cgImage);
+        CGContextDrawImage(cgContext, CGRectMake(0, 0, [self bounds].size.width, [self bounds].size.height), cgImage);
         
         CGContextRestoreGState(cgContext);
         

@@ -25,7 +25,7 @@
 @interface MRDPWindowView : NSView
 {
     mfContext *mfc;
-    mfAppWindow *handle;
+    mfAppWindow *mfAppWindow;
     CGContextRef bitmap_context;
 
 @public
@@ -33,7 +33,7 @@
 
 }
 
-- (void)init_view: (mfContext*) context;
+- (void)init_view: (mfContext*) context appWindow: (mfAppWindow*) appWindow;
 @end
 
 
