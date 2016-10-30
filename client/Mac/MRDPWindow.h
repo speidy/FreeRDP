@@ -64,7 +64,7 @@ struct mf_app_window
 	UINT32 localWindowOffsetCorrX;
 	UINT32 localWindowOffsetCorrY;
 
-    CGContextRef gc;
+	CGContextRef gc;
 	//int shmid;
 	NSWindow* handle;
 	//Window* xfwin;

@@ -1,4 +1,3 @@
-
 /**
  * FreeRDP: A Remote Desktop Protocol Implementation
  * MacFreeRDP
@@ -29,87 +28,87 @@
 
 void windows_to_apple_coords(MRDPWindowView* view, NSRect* r)
 {
-    r->origin.y = [view frame].size.height - (r->origin.y + r->size.height);
+	r->origin.y = [view frame].size.height - (r->origin.y + r->size.height);
 }
 
 int mf_AppWindowInit(mfContext* mfc, mfAppWindow* appWindow)
 {
 	WLog_INFO(TAG, "mf_AppWindowInit");
 	NSRect rect;
-    NSWindow* window = NULL;
-    MRDPWindowView *view = NULL;
-    
+	NSWindow* window = NULL;
+	MRDPWindowView *view = NULL;
+
 	rect = NSMakeRect(appWindow->x, appWindow->height - appWindow->y, appWindow->width, appWindow->height);
-    
-    view = [[MRDPWindowView alloc] initWithFrame:rect];
-    [view init_view:mfc appWindow:appWindow];
-    
-    window = [[[NSWindow alloc] initWithContentRect:rect
-                                styleMask:NSBorderlessWindowMask
-                                backing:NSBackingStoreBuffered
-                                defer:NO] autorelease];
-    [window setTitle: [NSString stringWithUTF8String: appWindow->title]];
-    [window setBackgroundColor:[NSColor blueColor]];
-    [window makeKeyAndOrderFront:NSApp];
-    [window setContentView: view];
-    
-    appWindow->handle = window;
-    return 1;
+
+	view = [[MRDPWindowView alloc] initWithFrame:rect];
+	[view init_view:mfc appWindow:appWindow];
+
+	window = [[[NSWindow alloc] initWithContentRect:rect
+								styleMask:NSBorderlessWindowMask
+								backing:NSBackingStoreBuffered
+								defer:NO] autorelease];
+	[window setTitle: [NSString stringWithUTF8String: appWindow->title]];
+	[window setBackgroundColor:[NSColor blueColor]];
+	[window makeKeyAndOrderFront:NSApp];
+	[window setContentView: view];
+
+	appWindow->handle = window;
+	return 1;
 }
 
 void mf_DestroyWindow(mfContext* mfc, mfAppWindow* appWindow)
 {
 	WLog_INFO(TAG, "mf_DestroyWindow");
-    MRDPWindowView* view;
-    NSWindow* window;
-    
-    window = appWindow->handle;
-    view = [appWindow->handle contentView];
-    
-    [window close];
-    [window dealloc];
-    [view dealloc];
-    
-    appWindow->handle = NULL;
+	MRDPWindowView* view;
+	NSWindow* window;
+
+	window = appWindow->handle;
+	view = [appWindow->handle contentView];
+
+	[window close];
+	[window dealloc];
+	[view dealloc];
+
+	appWindow->handle = NULL;
 }
 
 void mf_MoveWindow(mfContext* mfc, mfAppWindow* appWindow,
 		int x, int y, int width, int height)
 {
 	WLog_INFO(TAG, "mf_MoveWindow x: %d y: %d width: %d height: %d", x, y, width, height);
-    MRDPWindowView* view;
-    NSWindow* window;
-    NSRect rect;
-    BOOL resize = FALSE;
-    
-    window = appWindow->handle;
-    view = [appWindow->handle contentView];
+	MRDPWindowView* view;
+	NSWindow* window;
+	NSRect rect;
+	BOOL resize = FALSE;
 
-    if ((width * height) < 1)
-    {
-        return;
-    }
+	window = appWindow->handle;
+	view = [appWindow->handle contentView];
 
-    if ((appWindow->width != width) || (appWindow->height != height))
-    {
-        resize = TRUE;
-    }
+	if ((width * height) < 1)
+	{
+		return;
+	}
 
-    appWindow->x = x;
-    appWindow->y = y;
-    appWindow->width = width;
-    appWindow->height = height;
+	if ((appWindow->width != width) || (appWindow->height != height))
+	{
+		resize = TRUE;
+	}
 
-    rect = NSMakeRect(x, height - y, width, height);
+	appWindow->x = x;
+	appWindow->y = y;
+	appWindow->width = width;
+	appWindow->height = height;
 
-    if (resize)
-    {
-        [view resize_view];
-    }
-    
-    [window setFrame:rect display:YES animate:YES];
-    
-    mf_UpdateWindowArea(mfc, appWindow, 0, 0, width, height);
+	rect = NSMakeRect(x, height - y, width, height);
+
+	if (resize)
+	{
+		[view resize_view];
+	}
+
+	[window setFrame:rect display:YES animate:YES];
+
+	mf_UpdateWindowArea(mfc, appWindow, 0, 0, width, height);
 }
 
 void mf_UpdateWindowArea(mfContext* mfc, mfAppWindow* appWindow,
@@ -118,13 +117,13 @@ void mf_UpdateWindowArea(mfContext* mfc, mfAppWindow* appWindow,
 	WLog_INFO(TAG, "mf_UpdateWindowArea");
 	int ax, ay;
 	rdpSettings *rdpSettings = mfc->context.settings;
-    NSWindow *window;
-    MRDPWindowView *view;
-    NSRect rect;
+	NSWindow *window;
+	MRDPWindowView *view;
+	NSRect rect;
 
-    window = appWindow->handle;
-    view = [window contentView];
-    
+	window = appWindow->handle;
+	view = [window contentView];
+
 	ax = x + appWindow->windowOffsetX;
 	ay = y + appWindow->windowOffsetY;
 
@@ -141,10 +140,10 @@ void mf_UpdateWindowArea(mfContext* mfc, mfAppWindow* appWindow,
 //  				ax, ay, ax, ay, width, height);
 	}
 
-    rect = NSMakeRect(ax, ay, width, height);
-    windows_to_apple_coords(view, &rect);
-    [view setNeedsDisplayInRect:rect];
-    
+	rect = NSMakeRect(ax, ay, width, height);
+	windows_to_apple_coords(view, &rect);
+	[view setNeedsDisplayInRect:rect];
+
 //    XCopyArea(mfc->display, mfc->primary, appWindow->handle, appWindow->gc,
 //  			ax, ay, width, height, x, y);
 
