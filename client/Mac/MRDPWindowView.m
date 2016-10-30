@@ -25,66 +25,66 @@
 
 - (void)init_view: (mfContext*) context appWindow:(mfAppWindow *)appWindow
 {
-    self->mfc = context;
-    self->mfAppWindow = appWindow;
-    
-    [self init_bitmap_context];
+	self->mfc = context;
+	self->mfAppWindow = appWindow;
+
+	[self init_bitmap_context];
 }
 
 - (void)resize_view
 {
-    CGContextRef old_context = bitmap_context;
-    CGContextRelease(old_context);
-    bitmap_context = NULL;
-    
-    [self init_bitmap_context];
+	CGContextRef old_context = bitmap_context;
+	CGContextRelease(old_context);
+	bitmap_context = NULL;
+
+	[self init_bitmap_context];
 }
 
 - (void)init_bitmap_context
 {
-    rdpGdi* gdi = mfc->context.gdi;
-    
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    
-    if (gdi->bytesPerPixel == 2)
-    {
-        bitmap_context = CGBitmapContextCreate(gdi->primary_buffer,
-                                               mfAppWindow->width, mfAppWindow->height, 5, gdi->width * gdi->bytesPerPixel,
-                                               colorSpace, kCGBitmapByteOrder16Little | kCGImageAlphaNoneSkipFirst);
-    }
-    else
-    {
-        bitmap_context = CGBitmapContextCreate(gdi->primary_buffer,
-                                               mfAppWindow->width, mfAppWindow->height, 8, gdi->width * gdi->bytesPerPixel,
-                                               colorSpace, kCGBitmapByteOrder32Little | kCGImageAlphaNoneSkipFirst);
-    }
-    
-    CGColorSpaceRelease(colorSpace);
+	rdpGdi* gdi = mfc->context.gdi;
+
+	CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+
+	if (gdi->bytesPerPixel == 2)
+	{
+		bitmap_context = CGBitmapContextCreate(gdi->primary_buffer,
+											   mfAppWindow->width, mfAppWindow->height, 5, gdi->width * gdi->bytesPerPixel,
+											   colorSpace, kCGBitmapByteOrder16Little | kCGImageAlphaNoneSkipFirst);
+	}
+	else
+	{
+		bitmap_context = CGBitmapContextCreate(gdi->primary_buffer,
+											   mfAppWindow->width, mfAppWindow->height, 8, gdi->width * gdi->bytesPerPixel,
+											   colorSpace, kCGBitmapByteOrder32Little | kCGImageAlphaNoneSkipFirst);
+	}
+
+	CGColorSpaceRelease(colorSpace);
 }
 
 - (void) drawRect:(NSRect)rect
 {
-    if (self->bitmap_context)
-    {
-        CGContextRef cgContext = [[NSGraphicsContext currentContext] graphicsPort];
-        CGImageRef cgImage = CGBitmapContextCreateImage(self->bitmap_context);
-        
-        CGContextSaveGState(cgContext);
-        
-        CGContextClipToRect(cgContext, CGRectMake(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height));
-        
-        CGContextDrawImage(cgContext, CGRectMake(0, 0, [self bounds].size.width, [self bounds].size.height), cgImage);
-        
-        CGContextRestoreGState(cgContext);
-        
-        CGImageRelease(cgImage);
-    }
-    else
-    {
-        /* Fill the screen with black */
-        [[NSColor blackColor] set];
-        NSRectFill([self bounds]);
-    }
+	if (self->bitmap_context)
+	{
+		CGContextRef cgContext = [[NSGraphicsContext currentContext] graphicsPort];
+		CGImageRef cgImage = CGBitmapContextCreateImage(self->bitmap_context);
+
+		CGContextSaveGState(cgContext);
+
+		CGContextClipToRect(cgContext, CGRectMake(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height));
+
+		CGContextDrawImage(cgContext, CGRectMake(0, 0, [self bounds].size.width, [self bounds].size.height), cgImage);
+
+		CGContextRestoreGState(cgContext);
+
+		CGImageRelease(cgImage);
+	}
+	else
+	{
+		/* Fill the screen with black */
+		[[NSColor blackColor] set];
+		NSRectFill([self bounds]);
+	}
 }
 
 @end

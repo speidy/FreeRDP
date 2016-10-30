@@ -1,4 +1,3 @@
-
 /**
  * FreeRDP: A Remote Desktop Protocol Implementation
  * MacFreeRDP
@@ -36,49 +35,49 @@ void windows_to_apple_coords(MRDPWindowView* view, NSRect* r)
 {
     NSScreen* screen = [NSScreen mainScreen];
     NSRect workAreaFrame = [screen visibleFrame];
-    r->origin.y = [view frame].size.height - (r->origin.y + r->size.height);
+    r->origin.y = workAreaFrame.size.height - (r->origin.y + r->size.height);
 }
 
 int mf_AppWindowInit(mfContext* mfc, mfAppWindow* appWindow)
 {
 	WLog_INFO(TAG, "mf_AppWindowInit");
 	NSRect rect;
-    NSWindow* window = NULL;
-    MRDPWindowView *view = NULL;
-    
-	rect = NSMakeRect(appWindow->x, appWindow->height - appWindow->y, appWindow->width, appWindow->height);
-//    windows_to_mac_coord(mfc->context.settings, &rect);
-    
-    view = [[MRDPWindowView alloc] initWithFrame:rect];
-    [view init_view:mfc appWindow:appWindow];
-    
-    window = [[[NSWindow alloc] initWithContentRect:rect
-                                styleMask:NSBorderlessWindowMask
-                                backing:NSBackingStoreBuffered
-                                defer:NO] autorelease];
-    [window setTitle: [NSString stringWithUTF8String: appWindow->title]];
-    [window setBackgroundColor:[NSColor blueColor]];
-    [window makeKeyAndOrderFront:NSApp];
-    [window setContentView: view];
-    
-    appWindow->handle = window;
-    return 1;
+	NSWindow* window = NULL;
+	MRDPWindowView *view = NULL;
+
+	rect = NSMakeRect(appWindow->x, appWindow->height - appWindow->y,
+			appWindow->width, appWindow->height);
+
+	view = [[MRDPWindowView alloc] initWithFrame:rect];
+	[view init_view:mfc appWindow:appWindow];
+
+	window = [[[NSWindow alloc] initWithContentRect:rect
+			styleMask:NSBorderlessWindowMask
+			backing:NSBackingStoreBuffered
+			defer:NO] autorelease];
+	[window setTitle: [NSString stringWithUTF8String: appWindow->title]];
+	[window setBackgroundColor:[NSColor blueColor]];
+	[window setContentView: view];
+
+	appWindow->handle = window;
+	return 1;
 }
 
 void mf_DestroyWindow(mfContext* mfc, mfAppWindow* appWindow)
 {
 	WLog_INFO(TAG, "mf_DestroyWindow");
-    MRDPWindowView* view;
-    NSWindow* window;
-    
-    window = appWindow->handle;
-    view = [appWindow->handle contentView];
-    
-    [window close];
-    [window dealloc];
-    [view dealloc];
-    
-    appWindow->handle = NULL;
+	MRDPWindowView* view;
+	NSWindow* window;
+
+	window = appWindow->handle;
+	view = [appWindow->handle contentView];
+
+	[window orderOut:NSApp];
+	[window close];
+	[window dealloc];
+	[view dealloc];
+
+	appWindow->handle = NULL;
 }
 
 void mf_MoveWindow(mfContext* mfc, mfAppWindow* appWindow,
@@ -126,16 +125,15 @@ void mf_UpdateWindowArea(mfContext* mfc, mfAppWindow* appWindow,
 {
 	WLog_INFO(TAG, "mf_UpdateWindowArea");
 	int ax, ay;
-	rdpSettings *rdpSettings = mfc->context.settings;
-    NSWindow *window;
-    MRDPWindowView *view;
-    NSRect rect;
+	NSWindow *window;
+	MRDPWindowView *view;
+	NSRect rect;
 
     NSLog(@"mf_UpdateWindowArea x %d y %d width %d height %d", x, y, width, height);
     
     window = appWindow->handle;
     view = [window contentView];
-    
+	
 	ax = x + appWindow->windowOffsetX;
 	ay = y + appWindow->windowOffsetY;
 
@@ -148,7 +146,6 @@ void mf_UpdateWindowArea(mfContext* mfc, mfAppWindow* appWindow,
 //    rect = NSMakeRect(x, y, width, height);
     windows_to_apple_coords(view, &rect);
     [view setNeedsDisplayInRect:rect];
-    
 }
 
 void mf_SetWindowVisibilityRects(mfContext* mfc, mfAppWindow* appWindow,
@@ -160,12 +157,35 @@ void mf_SetWindowVisibilityRects(mfContext* mfc, mfAppWindow* appWindow,
 
 void mf_SetWindowText(mfContext* mfc, mfAppWindow* appWindow, char* name)
 {
+	NSWindow *window;
+
 	WLog_INFO(TAG, "mf_SetWindowText: %s", name);
+	window = appWindow->handle;
+	[window setTitle: [NSString stringWithUTF8String: appWindow->title]];
 }
 
 void mf_ShowWindow(mfContext* mfc, mfAppWindow* appWindow, BYTE state)
 {
+	NSWindow *window;
+
 	WLog_INFO(TAG, "mf_ShowWindow, state: 0x%08x", state);
+	window = appWindow->handle;
+	switch (state)
+	{
+		case WINDOW_HIDE:
+			[window orderOut:NSApp];
+			break;
+		case WINDOW_SHOW_MINIMIZED:
+			//TODO
+			break;
+		case WINDOW_SHOW_MAXIMIZED:
+			//TODO
+			break;
+		case WINDOW_SHOW:
+			[window makeKeyAndOrderFront:NSApp];
+			[NSApp activateIgnoringOtherApps:YES];
+			break;
+	}
 }
 
 
