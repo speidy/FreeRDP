@@ -33,6 +33,11 @@ void windows_to_mac_coord(rdpSettings *rdpSettings, NSRect* r)
 
 void windows_to_apple_coords(MRDPWindowView* view, NSRect* r)
 {
+	r->origin.y = [view frame].size.height - (r->origin.y + r->size.height);
+}
+
+void windows_to_apple_coords_screen(MRDPWindowView* view, NSRect* r)
+{
     NSScreen* screen = [NSScreen mainScreen];
     NSRect workAreaFrame = [screen visibleFrame];
     r->origin.y = workAreaFrame.size.height - (r->origin.y + r->size.height);
@@ -47,7 +52,8 @@ int mf_AppWindowInit(mfContext* mfc, mfAppWindow* appWindow)
 
 	rect = NSMakeRect(appWindow->x, appWindow->height - appWindow->y,
 			appWindow->width, appWindow->height);
-
+	windows_to_mac_coord(mfc->context.settings, &rect);
+	
 	view = [[MRDPWindowView alloc] initWithFrame:rect];
 	[view init_view:mfc appWindow:appWindow];
 
@@ -144,7 +150,7 @@ void mf_UpdateWindowArea(mfContext* mfc, mfAppWindow* appWindow,
 
     rect = NSMakeRect(ax, ay, width, height);
 //    rect = NSMakeRect(x, y, width, height);
-    windows_to_apple_coords(view, &rect);
+	windows_to_apple_coords(view, &rect);
     [view setNeedsDisplayInRect:rect];
 }
 
@@ -160,6 +166,7 @@ void mf_SetWindowText(mfContext* mfc, mfAppWindow* appWindow, char* name)
 	NSWindow *window;
 
 	WLog_INFO(TAG, "mf_SetWindowText: %s", name);
+
 	window = appWindow->handle;
 	[window setTitle: [NSString stringWithUTF8String: appWindow->title]];
 }
