@@ -38,18 +38,18 @@ int mf_AppWindowInit(mfContext* mfc, mfAppWindow* appWindow)
 	NSWindow* window = NULL;
 	MRDPWindowView *view = NULL;
 
-	rect = NSMakeRect(appWindow->x, appWindow->height - appWindow->y, appWindow->width, appWindow->height);
+	rect = NSMakeRect(appWindow->x, appWindow->height - appWindow->y,
+			appWindow->width, appWindow->height);
 
 	view = [[MRDPWindowView alloc] initWithFrame:rect];
 	[view init_view:mfc appWindow:appWindow];
 
 	window = [[[NSWindow alloc] initWithContentRect:rect
-								styleMask:NSBorderlessWindowMask
-								backing:NSBackingStoreBuffered
-								defer:NO] autorelease];
+			styleMask:NSBorderlessWindowMask
+			backing:NSBackingStoreBuffered
+			defer:NO] autorelease];
 	[window setTitle: [NSString stringWithUTF8String: appWindow->title]];
 	[window setBackgroundColor:[NSColor blueColor]];
-	[window makeKeyAndOrderFront:NSApp];
 	[window setContentView: view];
 
 	appWindow->handle = window;
@@ -65,6 +65,7 @@ void mf_DestroyWindow(mfContext* mfc, mfAppWindow* appWindow)
 	window = appWindow->handle;
 	view = [appWindow->handle contentView];
 
+	[window orderOut:NSApp];
 	[window close];
 	[window dealloc];
 	[view dealloc];
@@ -161,12 +162,35 @@ void mf_SetWindowVisibilityRects(mfContext* mfc, mfAppWindow* appWindow,
 
 void mf_SetWindowText(mfContext* mfc, mfAppWindow* appWindow, char* name)
 {
+	NSWindow *window;
+
 	WLog_INFO(TAG, "mf_SetWindowText: %s", name);
+	window = appWindow->handle;
+	[window setTitle: [NSString stringWithUTF8String: appWindow->title]];
 }
 
 void mf_ShowWindow(mfContext* mfc, mfAppWindow* appWindow, BYTE state)
 {
+	NSWindow *window;
+
 	WLog_INFO(TAG, "mf_ShowWindow, state: 0x%08x", state);
+	window = appWindow->handle;
+	switch (state)
+	{
+		case WINDOW_HIDE:
+			[window orderOut:NSApp];
+			break;
+		case WINDOW_SHOW_MINIMIZED:
+			//TODO
+			break;
+		case WINDOW_SHOW_MAXIMIZED:
+			//TODO
+			break;
+		case WINDOW_SHOW:
+			[window makeKeyAndOrderFront:NSApp];
+			[NSApp activateIgnoringOtherApps:YES];
+			break;
+	}
 }
 
 
