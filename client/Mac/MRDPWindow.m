@@ -27,8 +27,15 @@
 
 #define TAG CLIENT_TAG("mac")
 
+void windows_to_mac_coord(rdpSettings *rdpSettings, NSRect* r)
+{
+    r->origin.y = rdpSettings->DesktopHeight - (r->origin.y + r->size.height);
+}
+
 void windows_to_apple_coords(MRDPWindowView* view, NSRect* r)
 {
+    NSScreen* screen = [NSScreen mainScreen];
+    NSRect workAreaFrame = [screen visibleFrame];
     r->origin.y = [view frame].size.height - (r->origin.y + r->size.height);
 }
 
@@ -40,6 +47,7 @@ int mf_AppWindowInit(mfContext* mfc, mfAppWindow* appWindow)
     MRDPWindowView *view = NULL;
     
 	rect = NSMakeRect(appWindow->x, appWindow->height - appWindow->y, appWindow->width, appWindow->height);
+//    windows_to_mac_coord(mfc->context.settings, &rect);
     
     view = [[MRDPWindowView alloc] initWithFrame:rect];
     [view init_view:mfc appWindow:appWindow];
@@ -100,8 +108,9 @@ void mf_MoveWindow(mfContext* mfc, mfAppWindow* appWindow,
     appWindow->width = width;
     appWindow->height = height;
 
-    rect = NSMakeRect(x, height - y, width, height);
-
+    rect = NSMakeRect(x, y, width, height);
+    windows_to_mac_coord(mfc->context.settings, &rect);
+    
     if (resize)
     {
         [view resize_view];
@@ -122,6 +131,8 @@ void mf_UpdateWindowArea(mfContext* mfc, mfAppWindow* appWindow,
     MRDPWindowView *view;
     NSRect rect;
 
+    NSLog(@"mf_UpdateWindowArea x %d y %d width %d height %d", x, y, width, height);
+    
     window = appWindow->handle;
     view = [window contentView];
     
@@ -133,24 +144,11 @@ void mf_UpdateWindowArea(mfContext* mfc, mfAppWindow* appWindow,
 	if (ay + height > appWindow->windowOffsetY + appWindow->height)
 		height = (appWindow->windowOffsetY + appWindow->height - 1) - ay;
 
-//    xf_lock_x11(mfc, TRUE);
-
-	if (rdpSettings->SoftwareGdi)
-	{
-//  	  XPutImage(mfc->display, mfc->primary, appWindow->gc, mfc->image,
-//  				ax, ay, ax, ay, width, height);
-	}
-
     rect = NSMakeRect(ax, ay, width, height);
+//    rect = NSMakeRect(x, y, width, height);
     windows_to_apple_coords(view, &rect);
     [view setNeedsDisplayInRect:rect];
     
-//    XCopyArea(mfc->display, mfc->primary, appWindow->handle, appWindow->gc,
-//  			ax, ay, width, height, x, y);
-
-//    XFlush(mfc->display);
-
-//    xf_unlock_x11(mfc, TRUE);
 }
 
 void mf_SetWindowVisibilityRects(mfContext* mfc, mfAppWindow* appWindow,
