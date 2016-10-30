@@ -43,7 +43,6 @@
 - (void)init_bitmap_context
 {
 	rdpGdi* gdi = mfc->context.gdi;
-
 	CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
 
 	if (gdi->bytesPerPixel == 2)
