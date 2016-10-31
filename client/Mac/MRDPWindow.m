@@ -57,8 +57,9 @@ int mf_AppWindowInit(mfContext* mfc, mfAppWindow* appWindow)
 	view = [[MRDPWindowView alloc] initWithFrame:rect];
 	[view init_view:mfc appWindow:appWindow];
 
+	NSUInteger styleMask = NSBorderlessWindowMask;
 	window = [[[NSWindow alloc] initWithContentRect:rect
-			styleMask:NSBorderlessWindowMask
+			styleMask:styleMask
 			backing:NSBackingStoreBuffered
 			defer:NO] autorelease];
 	[window setTitle: [NSString stringWithUTF8String: appWindow->title]];
@@ -93,7 +94,6 @@ void mf_MoveWindow(mfContext* mfc, mfAppWindow* appWindow,
 	MRDPWindowView* view;
 	NSWindow* window;
 	NSRect rect;
-	BOOL resize = FALSE;
 
 	window = appWindow->handle;
 	view = [appWindow->handle contentView];
@@ -101,11 +101,6 @@ void mf_MoveWindow(mfContext* mfc, mfAppWindow* appWindow,
 	if ((width * height) < 1)
 	{
 		return;
-	}
-
-	if ((appWindow->width != width) || (appWindow->height != height))
-	{
-		resize = TRUE;
 	}
 
 	appWindow->x = x;
@@ -116,11 +111,6 @@ void mf_MoveWindow(mfContext* mfc, mfAppWindow* appWindow,
 	rect = NSMakeRect(x, y, width, height);
 	windows_to_mac_coord(mfc->context.settings, &rect);
 
-	if (resize)
-	{
-		[view resize_view];
-	}
-
 	[window setFrame:rect display:YES animate:YES];
 	mf_UpdateWindowArea(mfc, appWindow, 0, 0, width, height);
 }
@@ -129,7 +119,6 @@ void mf_UpdateWindowArea(mfContext* mfc, mfAppWindow* appWindow,
 						 int x, int y, int width, int height)
 {
 	WLog_INFO(TAG, "mf_UpdateWindowArea");
-	int ax, ay;
 	NSWindow *window;
 	MRDPWindowView *view;
 	NSRect rect;
@@ -139,16 +128,7 @@ void mf_UpdateWindowArea(mfContext* mfc, mfAppWindow* appWindow,
 	window = appWindow->handle;
 	view = [window contentView];
 
-	ax = x + appWindow->windowOffsetX;
-	ay = y + appWindow->windowOffsetY;
-
-	if (ax + width > appWindow->windowOffsetX + appWindow->width)
-		width = (appWindow->windowOffsetX + appWindow->width - 1) - ax;
-	if (ay + height > appWindow->windowOffsetY + appWindow->height)
-		height = (appWindow->windowOffsetY + appWindow->height - 1) - ay;
-
-	rect = NSMakeRect(ax, ay, width, height);
-//	rect = NSMakeRect(x, y, width, height);
+	rect = NSMakeRect(x, y, width, height);
 	windows_to_apple_coords(view, &rect);
 	[view setNeedsDisplayInRect:rect];
 }

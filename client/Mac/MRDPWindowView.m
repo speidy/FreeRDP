@@ -27,56 +27,43 @@
 {
 	self->mfc = context;
 	self->mfAppWindow = appWindow;
-
-	[self init_bitmap_context];
-}
-
-- (void)resize_view
-{
-	CGContextRef old_context = bitmap_context;
-	CGContextRelease(old_context);
-	bitmap_context = NULL;
-
-	[self init_bitmap_context];
-}
-
-- (void)init_bitmap_context
-{
-	rdpGdi* gdi = mfc->context.gdi;
-	CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-
-	if (gdi->bytesPerPixel == 2)
-	{
-		bitmap_context = CGBitmapContextCreate(gdi->primary_buffer,
-											   mfAppWindow->width, mfAppWindow->height, 5, gdi->width * gdi->bytesPerPixel,
-											   colorSpace, kCGBitmapByteOrder16Little | kCGImageAlphaNoneSkipFirst);
-	}
-	else
-	{
-		bitmap_context = CGBitmapContextCreate(gdi->primary_buffer,
-											   mfAppWindow->width, mfAppWindow->height, 8, gdi->width * gdi->bytesPerPixel,
-											   colorSpace, kCGBitmapByteOrder32Little | kCGImageAlphaNoneSkipFirst);
-	}
-
-	CGColorSpaceRelease(colorSpace);
 }
 
 - (void) drawRect:(NSRect)rect
 {
-	if (self->bitmap_context)
+	if (self->mfc != NULL)
 	{
+		CGRect viewWindowRect = [self.window frame];
+		int x = viewWindowRect.origin.x + rect.origin.x;
+		int y = viewWindowRect.origin.y + rect.origin.y;
+		int width = rect.size.width;
+		int height = rect.size.height;
+		rdpGdi* gdi = self->mfc->context.gdi;
+		y = gdi->height - (y + height);
+		CGContextRef bitmap_context;
+		CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+		int stride_bytes = gdi->width * gdi->bytesPerPixel;
+		void* pixels = gdi->primary_buffer + y * stride_bytes + x * gdi->bytesPerPixel;
+		if (gdi->bytesPerPixel == 2)
+		{
+			bitmap_context = CGBitmapContextCreate(pixels,
+					width, height, 5, stride_bytes,
+					colorSpace, kCGBitmapByteOrder16Little | kCGImageAlphaNoneSkipFirst);
+		}
+		else
+		{
+			bitmap_context = CGBitmapContextCreate(pixels,
+					width, height, 8, stride_bytes,
+					colorSpace, kCGBitmapByteOrder32Little | kCGImageAlphaNoneSkipFirst);
+		}
+		CGColorSpaceRelease(colorSpace);
 		CGContextRef cgContext = [[NSGraphicsContext currentContext] graphicsPort];
-		CGImageRef cgImage = CGBitmapContextCreateImage(self->bitmap_context);
-
+		CGImageRef cgImage = CGBitmapContextCreateImage(bitmap_context);
 		CGContextSaveGState(cgContext);
-
-		CGContextClipToRect(cgContext, CGRectMake(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height));
-
-		CGContextDrawImage(cgContext, CGRectMake(0, 0, [self bounds].size.width, [self bounds].size.height), cgImage);
-
+		CGContextDrawImage(cgContext, rect, cgImage);
 		CGContextRestoreGState(cgContext);
-
 		CGImageRelease(cgImage);
+		CGContextRelease(bitmap_context);
 	}
 	else
 	{
