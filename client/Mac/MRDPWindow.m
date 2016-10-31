@@ -50,7 +50,7 @@ int mf_AppWindowInit(mfContext* mfc, mfAppWindow* appWindow)
 	NSWindow* window = NULL;
 	MRDPWindowView *view = NULL;
 
-	rect = NSMakeRect(appWindow->x, appWindow->height - appWindow->y,
+	rect = NSMakeRect(appWindow->x, appWindow->y,
 			appWindow->width, appWindow->height);
 	windows_to_mac_coord(mfc->context.settings, &rect);
 
@@ -111,7 +111,7 @@ void mf_MoveWindow(mfContext* mfc, mfAppWindow* appWindow,
 	rect = NSMakeRect(x, y, width, height);
 	windows_to_mac_coord(mfc->context.settings, &rect);
 
-	[window setFrame:rect display:YES animate:YES];
+	[window setFrame:rect display:YES animate:NO];
 	mf_UpdateWindowArea(mfc, appWindow, 0, 0, width, height);
 }
 
