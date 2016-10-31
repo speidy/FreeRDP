@@ -26,15 +26,12 @@
 {
 	mfContext *mfc;
 	mfAppWindow *mfAppWindow;
-	CGContextRef bitmap_context;
 
 @public
-
 
 }
 
 - (void)init_view: (mfContext*) context appWindow: (mfAppWindow*) appWindow;
-- (void)update_bitmap_context;
 @end
 
 
