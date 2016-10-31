@@ -34,7 +34,7 @@
 }
 
 - (void)init_view: (mfContext*) context appWindow: (mfAppWindow*) appWindow;
-- (void)resize_view;
+- (void)update_bitmap_context;
 @end
 
 

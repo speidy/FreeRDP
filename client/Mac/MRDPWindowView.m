@@ -31,7 +31,7 @@
 	[self init_bitmap_context];
 }
 
-- (void)resize_view
+- (void)update_bitmap_context
 {
 	CGContextRef old_context = bitmap_context;
 	CGContextRelease(old_context);

@@ -118,7 +118,7 @@ void mf_MoveWindow(mfContext* mfc, mfAppWindow* appWindow,
 
 	if (resize)
 	{
-		[view resize_view];
+		[view update_bitmap_context];
 	}
 
 	[window setFrame:rect display:YES animate:YES];
