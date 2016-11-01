@@ -23,7 +23,7 @@
 @implementation MRDPWindowView
 
 
-- (void)init_view: (mfContext*) context appWindow:(mfAppWindow *)appWindow
+- (void)init_view: (mfContext*) context appWindow:(MRDPWindow *)appWindow
 {
 	self->mfc = context;
 	self->mfAppWindow = appWindow;
