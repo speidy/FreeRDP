@@ -61,7 +61,7 @@ void windows_to_apple_coords_screen(MRDPWindowView* view, NSRect* r)
 	[view init_view:mfc appWindow:self];
 
 	NSUInteger styleMask = NSBorderlessWindowMask;
-	[self initWithContentRect:rect styleMask:styleMask backing:NSBackingStoreBuffered defer:NO];
+	[[super initWithContentRect:rect styleMask:styleMask backing:NSBackingStoreBuffered defer:NO] autorelease];
 	[self setTitle: [NSString stringWithUTF8String: self.wnd_title]];
 	[self setBackgroundColor:[NSColor blueColor]];
 	[self setContentView: view];

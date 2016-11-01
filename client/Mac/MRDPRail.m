@@ -100,7 +100,7 @@ BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW
 
 	if (fieldFlags & WINDOW_ORDER_STATE_NEW)
 	{
-		appWindow = [[MRDPWindow alloc] init];
+		appWindow = [MRDPWindow alloc];
 		
 		if (appWindow == NULL)
 		{
