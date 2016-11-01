@@ -78,8 +78,9 @@
 //};
 //
 @interface MRDPWindow : NSWindow
-
-@property (nonatomic) mfContext *mfc;
+{
+	mfContext *mfc;
+}
 
 @property (nonatomic) int x;
 @property (nonatomic) int y;
@@ -117,7 +118,6 @@
 @property (nonatomic) UINT32 localWindowOffsetCorrY;
 
 @property (nonatomic) CGContextRef gc;
-//@property (nonatomic) NSWindow* handle;
 @property (nonatomic) BOOL fullscreen;
 @property (nonatomic) BOOL decorations;
 @property (nonatomic) BOOL is_mapped;

@@ -239,7 +239,7 @@ BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW
 		if (appWindow.numWindowRects)
 		{
 			[appWindow setWindowRects:(RECTANGLE_16*) calloc(appWindow.numWindowRects, sizeof(RECTANGLE_16))];
-			if (appWindow.windowRects)
+			if (appWindow.windowRects == NULL)
 			{
 				return FALSE;
 			}

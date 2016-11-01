@@ -28,42 +28,78 @@
 
 @implementation MRDPWindow
 
+- (BOOL)canBecomeKeyWindow
+{
+	return YES;
+}
 
-void windows_to_mac_coord(rdpSettings *rdpSettings, NSRect* r)
+- (BOOL)canBecomeMainWindow
+{
+	return YES;
+}
+
+- (void)keyDown:(NSEvent *)event
+{
+	NSLog(@"keyDown");
+}
+
+- (void)keyUp:(NSEvent *)theEvent
+{
+	NSLog(@"keyUp");
+}
+
+- (void)mouseDown:(NSEvent *)theEvent
+{
+	NSLog(@"mouseDown");
+}
+
+- (void)mouseUp:(NSEvent *)theEvent
+{
+	NSLog(@"mouseUp");
+}
+
++ (void)windows_to_mac_coord: (rdpSettings *)rdpSettings rect:(NSRect*)r
 {
 	r->origin.y = rdpSettings->DesktopHeight - (r->origin.y + r->size.height);
 }
 
-void windows_to_apple_coords(MRDPWindowView* view, NSRect* r)
++ (void)windows_to_apple_coords: (MRDPWindowView*)view rect:(NSRect*)r
 {
 	r->origin.y = [view frame].size.height - (r->origin.y + r->size.height);
 }
 
-void windows_to_apple_coords_screen(MRDPWindowView* view, NSRect* r)
++ (void)windows_to_apple_coords_screen: (MRDPWindowView*)view rect:(NSRect*)r
 {
 	NSScreen* screen = [NSScreen mainScreen];
 	NSRect workAreaFrame = [screen visibleFrame];
 	r->origin.y = workAreaFrame.size.height - (r->origin.y + r->size.height);
 }
 
-- (void) mf_AppWindowInit: (mfContext*) mfc
+-(id) initWithContentRect:(NSRect)contentRect styleMask:(NSUInteger)aStyle backing:(NSBackingStoreType)bufferingType defer:(BOOL)flag
+{
+	self = [super initWithContentRect:contentRect styleMask:aStyle backing:bufferingType defer:flag];
+	
+	return self;
+}
+
+- (void) mf_AppWindowInit: (mfContext*) mfctx
 {
 	WLog_INFO(TAG, "mf_AppWindowInit");
 	NSRect rect;
 	MRDPWindowView *view = NULL;
 
-	self.mfc = mfc;
+	self->mfc = mfctx;
 	
-	rect = NSMakeRect(self.x, self.y, self.width, self.height);
-	windows_to_mac_coord(mfc->context.settings, &rect);
+	rect = NSMakeRect(self.windowOffsetX, self.windowOffsetY, self.windowWidth, self.windowHeight);
+	[MRDPWindow windows_to_mac_coord:mfc->context.settings rect:&rect];
 
 	view = [[MRDPWindowView alloc] initWithFrame:rect];
 	[view init_view:mfc appWindow:self];
 
 	NSUInteger styleMask = NSBorderlessWindowMask;
-	[[super initWithContentRect:rect styleMask:styleMask backing:NSBackingStoreBuffered defer:NO] autorelease];
+	[[self initWithContentRect:rect styleMask:styleMask backing:NSBackingStoreBuffered defer:NO] autorelease];
 	[self setTitle: [NSString stringWithUTF8String: self.wnd_title]];
-	[self setBackgroundColor:[NSColor blueColor]];
+	[self setBackgroundColor:[NSColor clearColor]];
 	[self setContentView: view];
 }
 
@@ -99,7 +135,7 @@ void windows_to_apple_coords_screen(MRDPWindowView* view, NSRect* r)
 	self.height = height;
 
 	rect = NSMakeRect(x, y, width, height);
-	windows_to_mac_coord(self.mfc->context.settings, &rect);
+	[MRDPWindow windows_to_mac_coord:mfc->context.settings rect:&rect];
 
 	[self setFrame:rect display:YES animate:NO];
 	[self mf_UpdateWindowArea:0 y:0 width:width height:height];
@@ -116,7 +152,7 @@ void windows_to_apple_coords_screen(MRDPWindowView* view, NSRect* r)
 	view = [self contentView];
 
 	rect = NSMakeRect(x, y, width, height);
-	windows_to_apple_coords(view, &rect);
+	[MRDPWindow windows_to_apple_coords:view rect:&rect];
 	[view setNeedsDisplayInRect:rect];
 }
 
