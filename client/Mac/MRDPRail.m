@@ -63,7 +63,7 @@ void mac_rail_invalidate_region(mfContext* mfc, REGION16* invalidRegion)
 
 				if (appWindow)
 				{
-					[appWindow mf_UpdateWindowArea:updateRect.left y:updateRect.top width:updateRect.right height:updateRect.bottom - updateRect.top];
+					[appWindow mf_UpdateWindowArea:updateRect.left y:updateRect.top width:updateRect.right - updateRect.left height:updateRect.bottom - updateRect.top];
 				}
 			}
 		}
