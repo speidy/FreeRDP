@@ -26,6 +26,9 @@
 
 #define TAG CLIENT_TAG("mac")
 
+@implementation MRDPWindow
+
+
 void windows_to_mac_coord(rdpSettings *rdpSettings, NSRect* r)
 {
 	r->origin.y = rdpSettings->DesktopHeight - (r->origin.y + r->size.height);
@@ -43,122 +46,98 @@ void windows_to_apple_coords_screen(MRDPWindowView* view, NSRect* r)
 	r->origin.y = workAreaFrame.size.height - (r->origin.y + r->size.height);
 }
 
-int mf_AppWindowInit(mfContext* mfc, mfAppWindow* appWindow)
+- (void) mf_AppWindowInit: (mfContext*) mfc
 {
 	WLog_INFO(TAG, "mf_AppWindowInit");
 	NSRect rect;
-	NSWindow* window = NULL;
 	MRDPWindowView *view = NULL;
 
-	rect = NSMakeRect(appWindow->x, appWindow->y,
-			appWindow->width, appWindow->height);
+	self.mfc = mfc;
+	
+	rect = NSMakeRect(self.x, self.y, self.width, self.height);
 	windows_to_mac_coord(mfc->context.settings, &rect);
 
 	view = [[MRDPWindowView alloc] initWithFrame:rect];
-	[view init_view:mfc appWindow:appWindow];
+	[view init_view:mfc appWindow:self];
 
 	NSUInteger styleMask = NSBorderlessWindowMask;
-	window = [[[NSWindow alloc] initWithContentRect:rect
-			styleMask:styleMask
-			backing:NSBackingStoreBuffered
-			defer:NO] autorelease];
-	[window setTitle: [NSString stringWithUTF8String: appWindow->title]];
-	[window setBackgroundColor:[NSColor blueColor]];
-	[window setContentView: view];
-
-	appWindow->handle = window;
-	return 1;
+	[self initWithContentRect:rect styleMask:styleMask backing:NSBackingStoreBuffered defer:NO];
+	[self setTitle: [NSString stringWithUTF8String: self.wnd_title]];
+	[self setBackgroundColor:[NSColor blueColor]];
+	[self setContentView: view];
 }
 
-void mf_DestroyWindow(mfContext* mfc, mfAppWindow* appWindow)
+- (void) mf_DestroyWindow;
 {
 	WLog_INFO(TAG, "mf_DestroyWindow");
 	MRDPWindowView* view;
-	NSWindow* window;
 
-	window = appWindow->handle;
-	view = [appWindow->handle contentView];
+	view = [self contentView];
 
-	[window orderOut:NSApp];
-	[window close];
-	[window dealloc];
+	[self orderOut:NSApp];
+	[self close];
+	[self dealloc];
 	[view dealloc];
-
-	appWindow->handle = NULL;
 }
 
-void mf_MoveWindow(mfContext* mfc, mfAppWindow* appWindow,
-		int x, int y, int width, int height)
+- (void) mf_MoveWindow:(int)x y:(int)y width:(int)width height:(int)height
 {
 	WLog_INFO(TAG, "mf_MoveWindow x: %d y: %d width: %d height: %d", x, y, width, height);
 	MRDPWindowView* view;
-	NSWindow* window;
 	NSRect rect;
 
-	window = appWindow->handle;
-	view = [appWindow->handle contentView];
+	view = [self contentView];
 
 	if ((width * height) < 1)
 	{
 		return;
 	}
 
-	appWindow->x = x;
-	appWindow->y = y;
-	appWindow->width = width;
-	appWindow->height = height;
+	self.x = x;
+	self.y = y;
+	self.width = width;
+	self.height = height;
 
 	rect = NSMakeRect(x, y, width, height);
-	windows_to_mac_coord(mfc->context.settings, &rect);
+	windows_to_mac_coord(self.mfc->context.settings, &rect);
 
-	[window setFrame:rect display:YES animate:NO];
-	mf_UpdateWindowArea(mfc, appWindow, 0, 0, width, height);
+	[self setFrame:rect display:YES animate:NO];
+	[self mf_UpdateWindowArea:0 y:0 width:width height:height];
 }
 
-void mf_UpdateWindowArea(mfContext* mfc, mfAppWindow* appWindow,
-						 int x, int y, int width, int height)
+- (void) mf_UpdateWindowArea:(int)x y:(int)y width:(int)width height:(int)height
 {
 	WLog_INFO(TAG, "mf_UpdateWindowArea");
-	NSWindow *window;
 	MRDPWindowView *view;
 	NSRect rect;
 
 	NSLog(@"mf_UpdateWindowArea x %d y %d width %d height %d", x, y, width, height);
 
-	window = appWindow->handle;
-	view = [window contentView];
+	view = [self contentView];
 
 	rect = NSMakeRect(x, y, width, height);
 	windows_to_apple_coords(view, &rect);
 	[view setNeedsDisplayInRect:rect];
 }
 
-void mf_SetWindowVisibilityRects(mfContext* mfc, mfAppWindow* appWindow,
-		UINT32 rectsOffsetX, UINT32 rectsOffsetY,
-		RECTANGLE_16* rects, int nrects)
+- (void) mf_SetWindowVisibilityRects:(UINT32)rectsOffsetX rectsOffsetY:(UINT32)rectsOffsetY rects:(RECTANGLE_16*)rects nrects:(int)nrects
 {
 	WLog_INFO(TAG, "mf_SetWindowVisibilityRects");
 }
 
-void mf_SetWindowText(mfContext* mfc, mfAppWindow* appWindow, char* name)
+- (void) mf_SetWindowText:(char*) name;
 {
-	NSWindow *window;
-
 	WLog_INFO(TAG, "mf_SetWindowText: %s", name);
-	window = appWindow->handle;
-	[window setTitle: [NSString stringWithUTF8String: appWindow->title]];
+	[self setTitle: [NSString stringWithUTF8String: self.wnd_title]];
 }
 
-void mf_ShowWindow(mfContext* mfc, mfAppWindow* appWindow, BYTE state)
+- (void) mf_ShowWindow:(BYTE)state;
 {
-	NSWindow *window;
-
 	WLog_INFO(TAG, "mf_ShowWindow, state: 0x%08x", state);
-	window = appWindow->handle;
 	switch (state)
 	{
 		case WINDOW_HIDE:
-			[window orderOut:NSApp];
+			[self orderOut:NSApp];
 			break;
 		case WINDOW_SHOW_MINIMIZED:
 			//TODO
@@ -167,10 +146,11 @@ void mf_ShowWindow(mfContext* mfc, mfAppWindow* appWindow, BYTE state)
 			//TODO
 			break;
 		case WINDOW_SHOW:
-			[window makeKeyAndOrderFront:NSApp];
+			[self makeKeyAndOrderFront:NSApp];
 			[NSApp activateIgnoringOtherApps:YES];
 			break;
 	}
 }
 
+@end
 

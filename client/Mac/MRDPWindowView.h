@@ -25,13 +25,12 @@
 @interface MRDPWindowView : NSView
 {
 	mfContext *mfc;
-	mfAppWindow *mfAppWindow;
-
+	MRDPWindow *mfAppWindow;
 @public
 
 }
 
-- (void)init_view: (mfContext*) context appWindow: (mfAppWindow*) appWindow;
+- (void)init_view: (mfContext*) context appWindow: (MRDPWindow*) appWindow;
 @end
 
 

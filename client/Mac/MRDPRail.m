@@ -30,7 +30,7 @@ void mac_rail_invalidate_region(mfContext* mfc, REGION16* invalidRegion)
 	RECTANGLE_16 updateRect;
 	RECTANGLE_16 windowRect;
 	ULONG_PTR* pKeys = NULL;
-	mfAppWindow* appWindow;
+	MRDPWindow* appWindow;
 	const RECTANGLE_16* extents;
 	REGION16 windowInvalidRegion;
 
@@ -40,14 +40,14 @@ void mac_rail_invalidate_region(mfContext* mfc, REGION16* invalidRegion)
 
 	for (index = 0; index < count; index++)
 	{
-		appWindow = (mfAppWindow*) HashTable_GetItemValue(mfc->railWindows, (void*) pKeys[index]);
+		appWindow = (MRDPWindow*) HashTable_GetItemValue(mfc->railWindows, (void*) pKeys[index]);
 
 		if (appWindow)
 		{
-			windowRect.left = MAX(appWindow->x, 0);
-			windowRect.top = MAX(appWindow->y, 0);
-			windowRect.right = MAX(appWindow->x + appWindow->width, 0);
-			windowRect.bottom = MAX(appWindow->y + appWindow->height, 0);
+			windowRect.left = MAX(appWindow.x, 0);
+			windowRect.top = MAX(appWindow.y, 0);
+			windowRect.right = MAX(appWindow.x + appWindow.width, 0);
+			windowRect.bottom = MAX(appWindow.y + appWindow.height, 0);
 
 			region16_clear(&windowInvalidRegion);
 			region16_intersect_rect(&windowInvalidRegion, invalidRegion, &windowRect);
@@ -56,16 +56,14 @@ void mac_rail_invalidate_region(mfContext* mfc, REGION16* invalidRegion)
 			{
 				extents = region16_extents(&windowInvalidRegion);
 
-				updateRect.left = extents->left - appWindow->x;
-				updateRect.top = extents->top - appWindow->y;
-				updateRect.right = extents->right - appWindow->x;
-				updateRect.bottom = extents->bottom - appWindow->y;
+				updateRect.left = extents->left - appWindow.x;
+				updateRect.top = extents->top - appWindow.y;
+				updateRect.right = extents->right - appWindow.x;
+				updateRect.bottom = extents->bottom - appWindow.y;
 
 				if (appWindow)
 				{
-					mf_UpdateWindowArea(mfc, appWindow, updateRect.left, updateRect.top,
-							updateRect.right - updateRect.left,
-							updateRect.bottom - updateRect.top);
+					[appWindow mf_UpdateWindowArea:updateRect.left y:updateRect.top width:updateRect.right height:updateRect.bottom - updateRect.top];
 				}
 			}
 		}
@@ -74,7 +72,7 @@ void mac_rail_invalidate_region(mfContext* mfc, REGION16* invalidRegion)
 	region16_uninit(&windowInvalidRegion);
 }
 
-void mac_rail_paint(mfContext* xfc, INT32 uleft, INT32 utop, UINT32 uright, UINT32 ubottom)
+void mac_rail_paint(mfContext* mfc, INT32 uleft, INT32 utop, UINT32 uright, UINT32 ubottom)
 {
 	REGION16 invalidRegion;
 	RECTANGLE_16 invalidRect;
@@ -87,7 +85,7 @@ void mac_rail_paint(mfContext* xfc, INT32 uleft, INT32 utop, UINT32 uright, UINT
 	region16_init(&invalidRegion);
 	region16_union_rect(&invalidRegion, &invalidRegion, &invalidRect);
 
-	mac_rail_invalidate_region(xfc, &invalidRegion);
+	mac_rail_invalidate_region(mfc, &invalidRegion);
 
 	region16_uninit(&invalidRegion);
 }
@@ -95,26 +93,31 @@ void mac_rail_paint(mfContext* xfc, INT32 uleft, INT32 utop, UINT32 uright, UINT
 
 BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW_STATE_ORDER* windowState)
 {
-	mfAppWindow* appWindow = NULL;
+	MRDPWindow* appWindow = NULL;
 	UINT32 fieldFlags = orderInfo->fieldFlags;
 	mfContext* mfc = (mfContext*) context;
 	BOOL position_or_size_updated = FALSE;
 
 	if (fieldFlags & WINDOW_ORDER_STATE_NEW)
 	{
-		appWindow = (mfAppWindow*) calloc(1, sizeof(mfAppWindow));
+		appWindow = [[MRDPWindow alloc] init];
+		
 		if (appWindow == NULL)
 		{
 			return FALSE;
 		}
-		appWindow->mfc = mfc;
-		appWindow->windowId = orderInfo->windowId;
-		appWindow->dwStyle = windowState->style;
-		appWindow->dwExStyle = windowState->extendedStyle;
-		appWindow->x = appWindow->windowOffsetX = windowState->windowOffsetX;
-		appWindow->y = appWindow->windowOffsetY = windowState->windowOffsetY;
-		appWindow->width = appWindow->windowWidth = windowState->windowWidth;
-		appWindow->height = appWindow->windowHeight = windowState->windowHeight;
+		[appWindow setWindowId:orderInfo->windowId];
+		[appWindow setDwStyle:windowState->style];
+		[appWindow setDwExStyle:windowState->extendedStyle];
+		[appWindow setWindowOffsetX:windowState->windowOffsetX];
+		[appWindow setX:windowState->windowOffsetX];
+		[appWindow setWindowOffsetY:windowState->windowOffsetY];
+		[appWindow setY:windowState->windowOffsetY];
+		[appWindow setWindowWidth:windowState->windowWidth];
+		[appWindow setWidth:windowState->windowWidth];
+		[appWindow setWindowHeight:windowState->windowHeight];
+		[appWindow setHeight:windowState->windowHeight];
+		
 		/* Ensure window always gets a window title */
 		if (fieldFlags & WINDOW_ORDER_FIELD_TITLE)
 		{
@@ -123,36 +126,31 @@ BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW
 			{
 				if (!(title = _strdup("")))
 				{
-					//WLog_ERR(TAG, "failed to duplicate empty window title string");
 					/* error handled below */
 				}
 			}
 			else if (ConvertFromUnicode(CP_UTF8, 0, (WCHAR*) windowState->titleInfo.string,
 					windowState->titleInfo.length / 2, &title, 0, NULL, NULL) < 1)
 			{
-				//WLog_ERR(TAG, "failed to convert window title");
 				/* error handled below */
 			}
-			appWindow->title = title;
+			[appWindow setWnd_title:title];
 		}
 		else
 		{
-			if (!(appWindow->title = _strdup("RdpRailWindow")))
-			{
-				//WLog_ERR(TAG, "failed to duplicate default window title string");
-			}
+			[appWindow setWnd_title: _strdup("RdpRailWindow")];
 		}
-		if (!appWindow->title)
+		if (!appWindow.wnd_title)
 		{
-			free(appWindow);
+			[appWindow dealloc];
 			return FALSE;
 		}
 		HashTable_Add(mfc->railWindows, (void*) (UINT_PTR) orderInfo->windowId, (void*) appWindow);
-		mf_AppWindowInit(mfc, appWindow);
+		[appWindow mf_AppWindowInit:mfc];
 	}
 	else
 	{
-		appWindow = (mfAppWindow*) HashTable_GetItemValue(mfc->railWindows, (void*) (UINT_PTR) orderInfo->windowId);
+		appWindow = (MRDPWindow*) HashTable_GetItemValue(mfc->railWindows, (void*) (UINT_PTR) orderInfo->windowId);
 	}
 	if (appWindow == NULL)
 	{
@@ -172,26 +170,27 @@ BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW
 	/* Update Parameters */
 	if (fieldFlags & WINDOW_ORDER_FIELD_WND_OFFSET)
 	{
-		appWindow->windowOffsetX = windowState->windowOffsetX;
-		appWindow->windowOffsetY = windowState->windowOffsetY;
+		[appWindow setWindowOffsetX: windowState->windowOffsetX];
+		[appWindow setWindowOffsetY: windowState->windowOffsetY];
 	}
 	if (fieldFlags & WINDOW_ORDER_FIELD_WND_SIZE)
 	{
-		appWindow->windowWidth = windowState->windowWidth;
-		appWindow->windowHeight = windowState->windowHeight;
+		[appWindow setWindowWidth:windowState->windowWidth];
+		[appWindow setWindowHeight:windowState->windowHeight];
 	}
 	if (fieldFlags & WINDOW_ORDER_FIELD_OWNER)
 	{
-		appWindow->ownerWindowId = windowState->ownerWindowId;
+		[appWindow setOwnerWindowId:windowState->ownerWindowId];
 	}
 	if (fieldFlags & WINDOW_ORDER_FIELD_STYLE)
 	{
-		appWindow->dwStyle = windowState->style;
-		appWindow->dwExStyle = windowState->extendedStyle;
+		[appWindow setDwStyle:windowState->style];
+		[appWindow setDwExStyle:windowState->extendedStyle];
+
 	}
 	if (fieldFlags & WINDOW_ORDER_FIELD_SHOW)
 	{
-		appWindow->showState = windowState->showState;
+		[appWindow setShowState:windowState->showState];
 	}
 	if (fieldFlags & WINDOW_ORDER_FIELD_TITLE)
 	{
@@ -210,65 +209,66 @@ BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW
 			//WLog_ERR(TAG, "failed to convert window title");
 			return FALSE;
 		}
-		free(appWindow->title);
-		appWindow->title = title;
+		free(appWindow.wnd_title);
+		[appWindow setWnd_title:title];
 	}
 	if (fieldFlags & WINDOW_ORDER_FIELD_CLIENT_AREA_OFFSET)
 	{
-		appWindow->clientOffsetX = windowState->clientOffsetX;
-		appWindow->clientOffsetY = windowState->clientOffsetY;
+		[appWindow setWindowOffsetX: windowState->windowOffsetX];
+		[appWindow setWindowOffsetY: windowState->windowOffsetY];
+		
 	}
 	if (fieldFlags & WINDOW_ORDER_FIELD_CLIENT_AREA_SIZE)
 	{
-		appWindow->clientAreaWidth = windowState->clientAreaWidth;
-		appWindow->clientAreaHeight = windowState->clientAreaHeight;
+		[appWindow setClientAreaWidth:windowState->clientAreaWidth];
+		[appWindow setClientAreaHeight:windowState->clientAreaHeight];
 	}
 	if (fieldFlags & WINDOW_ORDER_FIELD_WND_CLIENT_DELTA)
 	{
-		appWindow->windowClientDeltaX = windowState->windowClientDeltaX;
-		appWindow->windowClientDeltaY = windowState->windowClientDeltaY;
+		[appWindow setWindowClientDeltaX:windowState->windowClientDeltaX];
+		[appWindow setWindowClientDeltaY:windowState->windowClientDeltaY];
 	}
 	if (fieldFlags & WINDOW_ORDER_FIELD_WND_RECTS)
 	{
-		if (appWindow->windowRects)
+		if (appWindow.windowRects)
 		{
-			free(appWindow->windowRects);
-			appWindow->windowRects = NULL;
+			free(appWindow.windowRects);
+			[appWindow setWindowRects:NULL];
 		}
-		appWindow->numWindowRects = windowState->numWindowRects;
-		if (appWindow->numWindowRects)
+		[appWindow setNumWindowRects:windowState->numWindowRects];
+		if (appWindow.numWindowRects)
 		{
-			appWindow->windowRects = (RECTANGLE_16*) calloc(appWindow->numWindowRects, sizeof(RECTANGLE_16));
-			if (appWindow->windowRects == NULL)
+			[appWindow setWindowRects:(RECTANGLE_16*) calloc(appWindow.numWindowRects, sizeof(RECTANGLE_16))];
+			if (appWindow.windowRects)
 			{
 				return FALSE;
 			}
-			CopyMemory(appWindow->windowRects, windowState->windowRects,
-					   appWindow->numWindowRects * sizeof(RECTANGLE_16));
+			CopyMemory(appWindow.windowRects, windowState->windowRects,
+					   appWindow.numWindowRects * sizeof(RECTANGLE_16));
 		}
 	}
 	if (fieldFlags & WINDOW_ORDER_FIELD_VIS_OFFSET)
 	{
-		appWindow->visibleOffsetX = windowState->visibleOffsetX;
-		appWindow->visibleOffsetY = windowState->visibleOffsetY;
+		[appWindow setVisibleOffsetX:windowState->visibleOffsetX];
+		[appWindow setVisibleOffsetY:windowState->visibleOffsetY];
 	}
 	if (fieldFlags & WINDOW_ORDER_FIELD_VISIBILITY)
 	{
-		if (appWindow->visibilityRects)
+		if (appWindow.visibilityRects)
 		{
-			free(appWindow->visibilityRects);
-			appWindow->visibilityRects = NULL;
+			free(appWindow.visibilityRects);
+			[appWindow setVisibilityRects: NULL];
 		}
-		appWindow->numVisibilityRects = windowState->numVisibilityRects;
-		if (appWindow->numVisibilityRects)
+		[appWindow setNumVisibilityRects:windowState->numVisibilityRects];
+		if (appWindow.numVisibilityRects)
 		{
-			appWindow->visibilityRects = (RECTANGLE_16*) calloc(appWindow->numVisibilityRects, sizeof(RECTANGLE_16));
-			if (appWindow->visibilityRects == NULL)
+			[appWindow setVisibilityRects:(RECTANGLE_16*) calloc(appWindow.numVisibilityRects, sizeof(RECTANGLE_16))];
+			if (appWindow.visibilityRects == NULL)
 			{
 				return FALSE;
 			}
-			CopyMemory(appWindow->visibilityRects, windowState->visibilityRects,
-					   appWindow->numVisibilityRects * sizeof(RECTANGLE_16));
+			CopyMemory(appWindow.visibilityRects, windowState->visibilityRects,
+					   appWindow.numVisibilityRects * sizeof(RECTANGLE_16));
 		}
 	}
 	/* Update Window */
@@ -277,43 +277,41 @@ BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW
 	}
 	if (fieldFlags & WINDOW_ORDER_FIELD_SHOW)
 	{
-		mf_ShowWindow(mfc, appWindow, appWindow->showState);
+		[appWindow mf_ShowWindow:appWindow.showState];
 	}
 	if (fieldFlags & WINDOW_ORDER_FIELD_TITLE)
 	{
-		if (appWindow->title != NULL)
+		if (appWindow.wnd_title != NULL)
 		{
-			mf_SetWindowText(mfc, appWindow, appWindow->title);
+			[appWindow mf_SetWindowText:appWindow.wnd_title];
 		}
 	}
 	if (position_or_size_updated)
 	{
 		UINT32 visibilityRectsOffsetX =
-				(appWindow->visibleOffsetX - (appWindow->clientOffsetX - appWindow->windowClientDeltaX));
+				(appWindow.visibleOffsetX - (appWindow.clientOffsetX - appWindow.windowClientDeltaX));
 		UINT32 visibilityRectsOffsetY =
-				(appWindow->visibleOffsetY - (appWindow->clientOffsetY - appWindow->windowClientDeltaY));
+				(appWindow.visibleOffsetY - (appWindow.clientOffsetY - appWindow.windowClientDeltaY));
 		/*
 		 * The rail server like to set the window to a small size when it is minimized even though it is hidden
 		 * in some cases this can cause the window not to restore back to its original size. Therefore we don't
 		 * update our local window when that rail window state is minimized
 		 */
-		if (appWindow->rail_state != WINDOW_SHOW_MINIMIZED)
+		if (appWindow.rail_state != WINDOW_SHOW_MINIMIZED)
 		{
 			/* Redraw window area if already in the correct position */
-			if (appWindow->x == appWindow->windowOffsetX &&
-				appWindow->y == appWindow->windowOffsetY &&
-				appWindow->width == appWindow->windowWidth &&
-				appWindow->height == appWindow->windowHeight)
+			if (appWindow.x == appWindow.windowOffsetX &&
+				appWindow.y == appWindow.windowOffsetY &&
+				appWindow.width == appWindow.windowWidth &&
+				appWindow.height == appWindow.windowHeight)
 			{
-				mf_UpdateWindowArea(mfc, appWindow, 0, 0, appWindow->windowWidth, appWindow->windowHeight);
+				[appWindow mf_UpdateWindowArea:0 y:0 width:appWindow.windowWidth height:appWindow.windowHeight];
 			}
 			else
 			{
-				mf_MoveWindow(mfc, appWindow, appWindow->windowOffsetX, appWindow->windowOffsetY,
-							  appWindow->windowWidth, appWindow->windowHeight);
+				[appWindow mf_MoveWindow:appWindow.windowOffsetX y:appWindow.windowOffsetY width:appWindow.windowWidth height:appWindow.windowHeight];
 			}
-			mf_SetWindowVisibilityRects(mfc, appWindow, visibilityRectsOffsetX, visibilityRectsOffsetY,
-										appWindow->visibilityRects, appWindow->numVisibilityRects);
+			[appWindow mf_SetWindowVisibilityRects:visibilityRectsOffsetX rectsOffsetY:visibilityRectsOffsetY rects:appWindow.visibilityRects nrects:appWindow.numVisibilityRects];
 		}
 	}
 	return TRUE;
@@ -321,16 +319,16 @@ BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW
 
 BOOL mac_window_delete(rdpContext* context, WINDOW_ORDER_INFO* orderInfo)
 {
-	mfAppWindow* appWindow = NULL;
+	MRDPWindow* appWindow = NULL;
 	mfContext* mfc = (mfContext*) context;
 
-	appWindow = (mfAppWindow*) HashTable_GetItemValue(mfc->railWindows, (void*) (UINT_PTR) orderInfo->windowId);
+	appWindow = (MRDPWindow*) HashTable_GetItemValue(mfc->railWindows, (void*) (UINT_PTR) orderInfo->windowId);
 	if (appWindow == NULL)
 	{
 		return TRUE;
 	}
 	HashTable_Remove(mfc->railWindows, (void*) (UINT_PTR) orderInfo->windowId);
-	mf_DestroyWindow(mfc, appWindow);
+	[appWindow mf_DestroyWindow];
 	return TRUE;
 }
 
