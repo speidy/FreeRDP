@@ -27,13 +27,20 @@
 @interface MRDPRail : NSObject
 {
 @public
+	rdpContext* m_context;
+	WINDOW_ORDER_INFO* m_orderInfo;
+	WINDOW_STATE_ORDER* m_windowState;
+	int m_rv;
 }
 
-- (BOOL) mac_window_common :(rdpContext*) rdp_context
+- (BOOL) mac_window_common :(rdpContext*) context
 		oi:(WINDOW_ORDER_INFO*) orderInfo
 		ws:(WINDOW_STATE_ORDER*) windowState;
-- (BOOL) mac_window_delete :(rdpContext*) rdp_context
+- (BOOL) mac_window_delete :(rdpContext*) context
 		oi:(WINDOW_ORDER_INFO*) orderInfo;
+
+- (void) mac_window_common_sync;
+- (void) mac_window_delete_sync;
 
 @end
 

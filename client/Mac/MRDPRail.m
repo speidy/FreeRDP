@@ -23,7 +23,7 @@
 #import "MRDPRail.h"
 #import "MRDPWindow.h"
 
-void mac_rail_invalidate_region(mfContext* mfc, REGION16* invalidRegion)
+static void mac_rail_invalidate_region(mfContext* mfc, REGION16* invalidRegion)
 {
 	int index;
 	int count;
@@ -333,6 +333,11 @@ void mac_rail_paint(mfContext* mfc, INT32 uleft, INT32 utop, UINT32 uright, UINT
 	return TRUE;
 }
 
+- (void) mac_window_common_sync;
+{
+	m_rv = [self mac_window_common:m_context oi:m_orderInfo ws:m_windowState];
+}
+
 - (BOOL) mac_window_delete :(rdpContext*) context
 		oi:(WINDOW_ORDER_INFO*) orderInfo
 {
@@ -347,6 +352,11 @@ void mac_rail_paint(mfContext* mfc, INT32 uleft, INT32 utop, UINT32 uright, UINT
 	HashTable_Remove(mfc->railWindows, (void*) (UINT_PTR) orderInfo->windowId);
 	[appWindow mf_DestroyWindow];
 	return TRUE;
+}
+
+- (void) mac_window_delete_sync;
+{
+	m_rv = [self mac_window_delete:m_context oi:m_orderInfo];
 }
 
 @end
@@ -481,14 +491,29 @@ BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW
 {
 	mfContext* mfc = (mfContext*)context;
 	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
+#if 1
+	rdpRail->m_context = context;
+	rdpRail->m_orderInfo = orderInfo;
+	rdpRail->m_windowState = windowState;
+	[rdpRail performSelectorOnMainThread:@selector(mac_window_common_sync) withObject:nil waitUntilDone:YES];
+	return rdpRail->m_rv;
+#else
 	return [rdpRail mac_window_common:context oi:orderInfo ws:windowState];
+#endif
 }
 
 BOOL mac_window_delete(rdpContext* context, WINDOW_ORDER_INFO* orderInfo)
 {
 	mfContext* mfc = (mfContext*)context;
 	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
+#if 1
+	rdpRail->m_context = context;
+	rdpRail->m_orderInfo = orderInfo;
+	[rdpRail performSelectorOnMainThread:@selector(mac_window_delete_sync) withObject:nil waitUntilDone:YES];
+	return rdpRail->m_rv;
+#else
 	return [rdpRail mac_window_delete:context oi:orderInfo];
+#endif
 }
 
 void mac_rail_init(mfContext* mfc, RailClientContext* rail)

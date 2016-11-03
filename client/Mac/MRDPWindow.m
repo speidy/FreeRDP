@@ -435,8 +435,8 @@
 
 	[self orderOut:NSApp];
 	[self close];
-	[self dealloc];
-	[view dealloc];
+	//[self dealloc];
+	//[view dealloc];
 }
 
 - (void) mf_MoveWindow:(int)x y:(int)y width:(int)width height:(int)height
