@@ -421,8 +421,6 @@
 	view = [[MRDPWindowView alloc] initWithFrame:rect];
 	[view init_view:mfc appWindow:self];
 
-	NSUInteger styleMask = NSBorderlessWindowMask;
-	[[self initWithContentRect:rect styleMask:styleMask backing:NSBackingStoreBuffered defer:NO] autorelease];
 	[self setTitle: [NSString stringWithUTF8String: self.wnd_title]];
 	[self setBackgroundColor:[NSColor clearColor]];
 	[self setContentView: view];
@@ -462,7 +460,7 @@
 	rect = NSMakeRect(x, y, width, height);
 	[MRDPWindow windows_to_mac_coord:mfc->context.settings rect:&rect];
 
-	[self setFrame:rect display:YES animate:NO];
+	[self setFrame:rect display:YES animate:YES];
 	[self mf_UpdateWindowArea:0 y:0 width:width height:height];
 }
 

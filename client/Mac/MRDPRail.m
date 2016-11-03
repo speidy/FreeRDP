@@ -100,8 +100,14 @@ BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW
 
 	if (fieldFlags & WINDOW_ORDER_STATE_NEW)
 	{
+		NSRect rect;
 		appWindow = [MRDPWindow alloc];
-		
+		rect = NSMakeRect(windowState->windowOffsetX, windowState->windowOffsetY,
+				windowState->windowWidth, windowState->windowHeight);
+		rect.origin.y = mfc->context.settings->DesktopHeight - (rect.origin.y + rect.size.height);
+		NSUInteger styleMask = NSBorderlessWindowMask;
+		appWindow = [appWindow initWithContentRect:rect
+				styleMask:styleMask backing:NSBackingStoreBuffered defer:NO];
 		if (appWindow == NULL)
 		{
 			return FALSE;
