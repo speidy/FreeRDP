@@ -90,8 +90,11 @@ void mac_rail_paint(mfContext* mfc, INT32 uleft, INT32 utop, UINT32 uright, UINT
 	region16_uninit(&invalidRegion);
 }
 
+@implementation MRDPRail
 
-BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW_STATE_ORDER* windowState)
+- (BOOL) mac_window_common :(rdpContext*) context
+		oi:(WINDOW_ORDER_INFO*) orderInfo
+		ws:(WINDOW_STATE_ORDER*) windowState
 {
 	MRDPWindow* appWindow = NULL;
 	UINT32 fieldFlags = orderInfo->fieldFlags;
@@ -123,7 +126,7 @@ BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW
 		[appWindow setWidth:windowState->windowWidth];
 		[appWindow setWindowHeight:windowState->windowHeight];
 		[appWindow setHeight:windowState->windowHeight];
-		
+
 		/* Ensure window always gets a window title */
 		if (fieldFlags & WINDOW_ORDER_FIELD_TITLE)
 		{
@@ -156,7 +159,8 @@ BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW
 	}
 	else
 	{
-		appWindow = (MRDPWindow*) HashTable_GetItemValue(mfc->railWindows, (void*) (UINT_PTR) orderInfo->windowId);
+		appWindow = (MRDPWindow*) HashTable_GetItemValue(mfc->railWindows,
+				(void*) (UINT_PTR) orderInfo->windowId);
 	}
 	if (appWindow == NULL)
 	{
@@ -192,7 +196,6 @@ BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW
 	{
 		[appWindow setDwStyle:windowState->style];
 		[appWindow setDwExStyle:windowState->extendedStyle];
-
 	}
 	if (fieldFlags & WINDOW_ORDER_FIELD_SHOW)
 	{
@@ -210,7 +213,7 @@ BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW
 			}
 		}
 		else if (ConvertFromUnicode(CP_UTF8, 0, (WCHAR*) windowState->titleInfo.string,
-									windowState->titleInfo.length / 2, &title, 0, NULL, NULL) < 1)
+				windowState->titleInfo.length / 2, &title, 0, NULL, NULL) < 1)
 		{
 			//WLog_ERR(TAG, "failed to convert window title");
 			return FALSE;
@@ -222,7 +225,7 @@ BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW
 	{
 		[appWindow setWindowOffsetX: windowState->windowOffsetX];
 		[appWindow setWindowOffsetY: windowState->windowOffsetY];
-		
+
 	}
 	if (fieldFlags & WINDOW_ORDER_FIELD_CLIENT_AREA_SIZE)
 	{
@@ -244,7 +247,8 @@ BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW
 		[appWindow setNumWindowRects:windowState->numWindowRects];
 		if (appWindow.numWindowRects)
 		{
-			[appWindow setWindowRects:(RECTANGLE_16*) calloc(appWindow.numWindowRects, sizeof(RECTANGLE_16))];
+			[appWindow setWindowRects:(RECTANGLE_16*)
+					calloc(appWindow.numWindowRects, sizeof(RECTANGLE_16))];
 			if (appWindow.windowRects == NULL)
 			{
 				return FALSE;
@@ -268,7 +272,8 @@ BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW
 		[appWindow setNumVisibilityRects:windowState->numVisibilityRects];
 		if (appWindow.numVisibilityRects)
 		{
-			[appWindow setVisibilityRects:(RECTANGLE_16*) calloc(appWindow.numVisibilityRects, sizeof(RECTANGLE_16))];
+			[appWindow setVisibilityRects:(RECTANGLE_16*)
+					calloc(appWindow.numVisibilityRects, sizeof(RECTANGLE_16))];
 			if (appWindow.visibilityRects == NULL)
 			{
 				return FALSE;
@@ -295,9 +300,9 @@ BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW
 	if (position_or_size_updated)
 	{
 		UINT32 visibilityRectsOffsetX =
-				(appWindow.visibleOffsetX - (appWindow.clientOffsetX - appWindow.windowClientDeltaX));
+		(appWindow.visibleOffsetX - (appWindow.clientOffsetX - appWindow.windowClientDeltaX));
 		UINT32 visibilityRectsOffsetY =
-				(appWindow.visibleOffsetY - (appWindow.clientOffsetY - appWindow.windowClientDeltaY));
+		(appWindow.visibleOffsetY - (appWindow.clientOffsetY - appWindow.windowClientDeltaY));
 		/*
 		 * The rail server like to set the window to a small size when it is minimized even though it is hidden
 		 * in some cases this can cause the window not to restore back to its original size. Therefore we don't
@@ -311,19 +316,25 @@ BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW
 				appWindow.width == appWindow.windowWidth &&
 				appWindow.height == appWindow.windowHeight)
 			{
-				[appWindow mf_UpdateWindowArea:0 y:0 width:appWindow.windowWidth height:appWindow.windowHeight];
+				[appWindow mf_UpdateWindowArea:0 y:0
+						width:appWindow.windowWidth height:appWindow.windowHeight];
 			}
 			else
 			{
-				[appWindow mf_MoveWindow:appWindow.windowOffsetX y:appWindow.windowOffsetY width:appWindow.windowWidth height:appWindow.windowHeight];
+				[appWindow mf_MoveWindow:appWindow.windowOffsetX y:appWindow.windowOffsetY
+						width:appWindow.windowWidth height:appWindow.windowHeight];
 			}
-			[appWindow mf_SetWindowVisibilityRects:visibilityRectsOffsetX rectsOffsetY:visibilityRectsOffsetY rects:appWindow.visibilityRects nrects:appWindow.numVisibilityRects];
+			[appWindow mf_SetWindowVisibilityRects:visibilityRectsOffsetX
+					rectsOffsetY:visibilityRectsOffsetY
+					rects:appWindow.visibilityRects
+					nrects:appWindow.numVisibilityRects];
 		}
 	}
 	return TRUE;
 }
 
-BOOL mac_window_delete(rdpContext* context, WINDOW_ORDER_INFO* orderInfo)
+- (BOOL) mac_window_delete :(rdpContext*) context
+		oi:(WINDOW_ORDER_INFO*) orderInfo
 {
 	MRDPWindow* appWindow = NULL;
 	mfContext* mfc = (mfContext*) context;
@@ -337,6 +348,8 @@ BOOL mac_window_delete(rdpContext* context, WINDOW_ORDER_INFO* orderInfo)
 	[appWindow mf_DestroyWindow];
 	return TRUE;
 }
+
+@end
 
 BOOL mac_window_icon(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW_ICON_ORDER* window_icon)
 {
@@ -464,6 +477,20 @@ static UINT mac_rail_server_get_appid_response(RailClientContext* context, RAIL_
 	return CHANNEL_RC_OK;
 }
 
+BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW_STATE_ORDER* windowState)
+{
+	mfContext* mfc = (mfContext*)context;
+	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
+	return [rdpRail mac_window_common:context oi:orderInfo ws:windowState];
+}
+
+BOOL mac_window_delete(rdpContext* context, WINDOW_ORDER_INFO* orderInfo)
+{
+	mfContext* mfc = (mfContext*)context;
+	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
+	return [rdpRail mac_window_delete:context oi:orderInfo];
+}
+
 void mac_rail_init(mfContext* mfc, RailClientContext* rail)
 {
 	rdpWindowUpdate* window;
@@ -493,6 +520,7 @@ void mac_rail_init(mfContext* mfc, RailClientContext* rail)
 	rail->ServerGetAppIdResponse = mac_rail_server_get_appid_response;
 
 	mfc->railWindows = HashTable_New(TRUE);
+	mfc->mrail = [MRDPRail new];
 }
 
 void mac_rail_uninit(mfContext* mfc, RailClientContext* rail)
@@ -502,6 +530,3 @@ void mac_rail_uninit(mfContext* mfc, RailClientContext* rail)
 	mfc->rail = NULL;
 	mfc->railWindows = NULL;
 }
-
-
-

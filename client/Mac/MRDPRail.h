@@ -24,6 +24,19 @@
 #import "freerdp/channels/channels.h"
 #import "freerdp/client/rail.h"
 
+@interface MRDPRail : NSObject
+{
+@public
+}
+
+- (BOOL) mac_window_common :(rdpContext*) rdp_context
+		oi:(WINDOW_ORDER_INFO*) orderInfo
+		ws:(WINDOW_STATE_ORDER*) windowState;
+- (BOOL) mac_window_delete :(rdpContext*) rdp_context
+		oi:(WINDOW_ORDER_INFO*) orderInfo;
+
+@end
+
 void mac_rail_init(mfContext* mfc, RailClientContext* rail);
 void mac_rail_uninit(mfContext* mfc, RailClientContext* rail);
 void mac_rail_paint(mfContext* xfc, INT32 uleft, INT32 utop, UINT32 uright, UINT32 ubottom);

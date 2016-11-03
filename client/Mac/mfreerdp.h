@@ -95,6 +95,8 @@ struct mf_context
 
 	RailClientContext* rail;
 	wHashTable* railWindows;
+
+	void* mrail;
 };
 
 #endif // MFREERDP_H

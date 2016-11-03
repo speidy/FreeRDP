@@ -460,7 +460,7 @@
 	rect = NSMakeRect(x, y, width, height);
 	[MRDPWindow windows_to_mac_coord:mfc->context.settings rect:&rect];
 
-	[self setFrame:rect display:YES animate:YES];
+	[self setFrame:rect display:YES animate:NO];
 	[self mf_UpdateWindowArea:0 y:0 width:width height:height];
 }
 
