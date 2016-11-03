@@ -32,6 +32,7 @@
 	WINDOW_STATE_ORDER* m_windowState;
 	WINDOW_ICON_ORDER* m_windowIcon;
 	WINDOW_CACHED_ICON_ORDER* m_windowCachedIcon;
+	NOTIFY_ICON_STATE_ORDER* m_notifyIconState;
 	int m_rv;
 }
 
@@ -46,11 +47,15 @@
 - (BOOL) mac_window_cached_icon :(rdpContext*) context
 		oi:(WINDOW_ORDER_INFO*) orderInfo
 		wci:(WINDOW_CACHED_ICON_ORDER*) windowCachedIcon;
+- (BOOL) mac_rail_notify_icon_create :(rdpContext*) context
+		oi:(WINDOW_ORDER_INFO*) orderInfo
+		nis:(NOTIFY_ICON_STATE_ORDER*) notifyIconState;
 
 - (void) mac_window_common_sync;
 - (void) mac_window_delete_sync;
 - (void) mac_window_icon_sync;
 - (void) mac_window_cached_icon_sync;
+- (void) mac_rail_notify_icon_create_sync;
 
 @end
 
