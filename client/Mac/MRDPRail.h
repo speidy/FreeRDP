@@ -33,6 +33,7 @@
 	WINDOW_ICON_ORDER* m_windowIcon;
 	WINDOW_CACHED_ICON_ORDER* m_windowCachedIcon;
 	NOTIFY_ICON_STATE_ORDER* m_notifyIconState;
+	MONITORED_DESKTOP_ORDER* m_monitoredDesktop;
 	int m_rv;
 }
 
@@ -50,12 +51,26 @@
 - (BOOL) mac_rail_notify_icon_create :(rdpContext*) context
 		oi:(WINDOW_ORDER_INFO*) orderInfo
 		nis:(NOTIFY_ICON_STATE_ORDER*) notifyIconState;
+- (BOOL) mac_rail_notify_icon_update :(rdpContext*) context
+		oi:(WINDOW_ORDER_INFO*) orderInfo
+		nis:(NOTIFY_ICON_STATE_ORDER*) notifyIconState;
+- (BOOL) mac_rail_notify_icon_delete :(rdpContext*) context
+		oi:(WINDOW_ORDER_INFO*) orderInfo;
+- (BOOL) mac_rail_monitored_desktop:(rdpContext*) context
+		oi:(WINDOW_ORDER_INFO*) orderInfo
+		md:(MONITORED_DESKTOP_ORDER*) monitoredDesktop;
+- (BOOL) mac_rail_non_monitored_desktop:(rdpContext*) context
+		oi:(WINDOW_ORDER_INFO*) orderInfo;
 
 - (void) mac_window_common_sync;
 - (void) mac_window_delete_sync;
 - (void) mac_window_icon_sync;
 - (void) mac_window_cached_icon_sync;
 - (void) mac_rail_notify_icon_create_sync;
+- (void) mac_rail_notify_icon_update_sync;
+- (void) mac_rail_notify_icon_delete_sync;
+- (void) mac_rail_monitored_desktop_sync;
+- (void) mac_rail_non_monitored_desktop_sync;
 
 @end
 
