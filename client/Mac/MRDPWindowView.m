@@ -31,19 +31,38 @@
 
 - (void) drawRect:(NSRect)rect
 {
+	rdpGdi* gdi;
+	CGRect viewWindowRect;
+	CGContextRef bitmap_context;
+	CGColorSpaceRef colorSpace;
+	CGContextRef cgContext;
+	CGImageRef cgImage;
+	void* pixels;
+	int stride_bytes;
+	int x;
+	int y;
+	int width;
+	int height;
+	
 	if (self->mfc != NULL)
 	{
-		CGRect viewWindowRect = [self.window frame];
-		int x = viewWindowRect.origin.x + rect.origin.x;
-		int y = viewWindowRect.origin.y + rect.origin.y;
-		int width = rect.size.width;
-		int height = rect.size.height;
-		rdpGdi* gdi = self->mfc->context.gdi;
+		viewWindowRect = [self.window frame];
+		x = viewWindowRect.origin.x + rect.origin.x;
+		y = viewWindowRect.origin.y + rect.origin.y;
+		width = rect.size.width;
+		height = rect.size.height;
+
+		if (x < 0 || y < 0 || width < 0  || height < 0)
+		{
+			return;
+		}
+		
+		gdi = self->mfc->context.gdi;
 		y = gdi->height - (y + height);
-		CGContextRef bitmap_context;
-		CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-		int stride_bytes = gdi->width * gdi->bytesPerPixel;
-		void* pixels = gdi->primary_buffer + y * stride_bytes + x * gdi->bytesPerPixel;
+
+		colorSpace = CGColorSpaceCreateDeviceRGB();
+		stride_bytes = gdi->width * gdi->bytesPerPixel;
+		pixels = gdi->primary_buffer + y * stride_bytes + x * gdi->bytesPerPixel;
 		if (gdi->bytesPerPixel == 2)
 		{
 			bitmap_context = CGBitmapContextCreate(pixels,
@@ -57,8 +76,8 @@
 					colorSpace, kCGBitmapByteOrder32Little | kCGImageAlphaNoneSkipFirst);
 		}
 		CGColorSpaceRelease(colorSpace);
-		CGContextRef cgContext = [[NSGraphicsContext currentContext] graphicsPort];
-		CGImageRef cgImage = CGBitmapContextCreateImage(bitmap_context);
+		cgContext = [[NSGraphicsContext currentContext] graphicsPort];
+		cgImage = CGBitmapContextCreateImage(bitmap_context);
 		CGContextSaveGState(cgContext);
 		CGContextDrawImage(cgContext, rect, cgImage);
 		CGContextRestoreGState(cgContext);

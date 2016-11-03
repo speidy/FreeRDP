@@ -43,6 +43,18 @@
 	return YES;
 }
 
+- (void)deminiaturize:(id)sender
+{
+	NSLog(@"deminiaturize");
+	[super deminiaturize:sender];
+}
+
+- (void)miniaturize:(id)sender
+{
+	NSLog(@"miniaturize");
+	[super miniaturize:sender];
+}
+
 /* mouse stuff */
 - (void) send_mouse_position:(UINT16)flags x:(UINT16)x y:(UINT16) y
 {
@@ -446,7 +458,7 @@
 	NSRect rect;
 
 	view = [self contentView];
-
+	
 	if ((width * height) < 1)
 	{
 		return;
@@ -499,10 +511,10 @@
 			[self orderOut:NSApp];
 			break;
 		case WINDOW_SHOW_MINIMIZED:
-			//TODO
+			[self miniaturize:NSApp];
 			break;
 		case WINDOW_SHOW_MAXIMIZED:
-			//TODO
+			[self deminiaturize:NSApp];
 			break;
 		case WINDOW_SHOW:
 			[self makeKeyAndOrderFront:NSApp];
