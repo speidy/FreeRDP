@@ -333,18 +333,14 @@ void mac_rail_paint(mfContext* mfc, INT32 uleft, INT32 utop, UINT32 uright, UINT
 	return TRUE;
 }
 
-- (void) mac_window_common_sync;
-{
-	m_rv = [self mac_window_common:m_context oi:m_orderInfo ws:m_windowState];
-}
-
 - (BOOL) mac_window_delete :(rdpContext*) context
 		oi:(WINDOW_ORDER_INFO*) orderInfo
 {
 	MRDPWindow* appWindow = NULL;
 	mfContext* mfc = (mfContext*) context;
 
-	appWindow = (MRDPWindow*) HashTable_GetItemValue(mfc->railWindows, (void*) (UINT_PTR) orderInfo->windowId);
+	appWindow = (MRDPWindow*) HashTable_GetItemValue(mfc->railWindows,
+			(void*) (UINT_PTR) orderInfo->windowId);
 	if (appWindow == NULL)
 	{
 		return TRUE;
@@ -354,11 +350,6 @@ void mac_rail_paint(mfContext* mfc, INT32 uleft, INT32 utop, UINT32 uright, UINT
 	return TRUE;
 }
 
-- (void) mac_window_delete_sync;
-{
-	m_rv = [self mac_window_delete:m_context oi:m_orderInfo];
-}
-
 - (BOOL) mac_window_icon :(rdpContext*) context
 		oi:(WINDOW_ORDER_INFO*) orderInfo
 		wi:(WINDOW_ICON_ORDER*) windowIcon
@@ -366,19 +357,41 @@ void mac_rail_paint(mfContext* mfc, INT32 uleft, INT32 utop, UINT32 uright, UINT
 	return TRUE;
 }
 
+- (BOOL) mac_window_cached_icon :(rdpContext*) context
+		oi:(WINDOW_ORDER_INFO*) orderInfo
+		wci:(WINDOW_CACHED_ICON_ORDER*) windowCachedIcon;
+{
+	return TRUE;
+}
+
+- (void) mac_window_common_sync;
+{
+	m_rv = [self mac_window_common:m_context oi:m_orderInfo ws:m_windowState];
+}
+
+- (void) mac_window_delete_sync;
+{
+	m_rv = [self mac_window_delete:m_context oi:m_orderInfo];
+}
+
+- (void) mac_window_icon_sync;
+{
+	m_rv = [self mac_window_icon:m_context oi:m_orderInfo wi:m_windowIcon];
+}
+
+- (void) mac_window_cached_icon_sync;
+{
+	m_rv = [self mac_window_cached_icon:m_context oi:m_orderInfo wci:m_windowCachedIcon];
+}
+
 @end
 
-BOOL mac_window_cached_icon(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW_CACHED_ICON_ORDER* window_cached_icon)
+BOOL mac_rail_notify_icon_create(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, NOTIFY_ICON_STATE_ORDER* notifyIconState)
 {
 	return TRUE;
 }
 
-BOOL mac_rail_notify_icon_create(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, NOTIFY_ICON_STATE_ORDER* notify_icon_state)
-{
-	return TRUE;
-}
-
-BOOL mac_rail_notify_icon_update(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, NOTIFY_ICON_STATE_ORDER* notify_icon_state)
+BOOL mac_rail_notify_icon_update(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, NOTIFY_ICON_STATE_ORDER* notifyIconState)
 {
 	return TRUE;
 }
@@ -497,7 +510,8 @@ BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW
 	rdpRail->m_context = context;
 	rdpRail->m_orderInfo = orderInfo;
 	rdpRail->m_windowState = windowState;
-	[rdpRail performSelectorOnMainThread:@selector(mac_window_common_sync) withObject:nil waitUntilDone:YES];
+	[rdpRail performSelectorOnMainThread:@selector(mac_window_common_sync)
+			withObject:nil waitUntilDone:YES];
 	return rdpRail->m_rv;
 #else
 	return [rdpRail mac_window_common:context oi:orderInfo ws:windowState];
@@ -511,21 +525,37 @@ BOOL mac_window_delete(rdpContext* context, WINDOW_ORDER_INFO* orderInfo)
 #if 1
 	rdpRail->m_context = context;
 	rdpRail->m_orderInfo = orderInfo;
-	[rdpRail performSelectorOnMainThread:@selector(mac_window_delete_sync) withObject:nil waitUntilDone:YES];
+	[rdpRail performSelectorOnMainThread:@selector(mac_window_delete_sync)
+			withObject:nil waitUntilDone:YES];
 	return rdpRail->m_rv;
 #else
 	return [rdpRail mac_window_delete:context oi:orderInfo];
 #endif
 }
 
-BOOL mac_window_icon(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW_ICON_ORDER* window_icon)
+BOOL mac_window_icon(rdpContext* context, WINDOW_ORDER_INFO* orderInfo,
+		WINDOW_ICON_ORDER* windowIcon)
 {
 	mfContext* mfc = (mfContext*)context;
 	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
 	rdpRail->m_context = context;
 	rdpRail->m_orderInfo = orderInfo;
-	rdpRail->m_window_icon = window_icon;
-	[rdpRail performSelectorOnMainThread:@selector(mac_window_icon_sync) withObject:nil waitUntilDone:YES];
+	rdpRail->m_windowIcon = windowIcon;
+	[rdpRail performSelectorOnMainThread:@selector(mac_window_icon_sync)
+			withObject:nil waitUntilDone:YES];
+	return rdpRail->m_rv;
+}
+
+BOOL mac_window_cached_icon(rdpContext* context, WINDOW_ORDER_INFO* orderInfo,
+		WINDOW_CACHED_ICON_ORDER* windowCachedIcon)
+{
+	mfContext* mfc = (mfContext*)context;
+	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
+	rdpRail->m_context = context;
+	rdpRail->m_orderInfo = orderInfo;
+	rdpRail->m_windowCachedIcon = windowCachedIcon;
+	[rdpRail performSelectorOnMainThread:@selector(mac_window_cached_icon_sync)
+			withObject:nil waitUntilDone:YES];
 	return rdpRail->m_rv;
 }
 
