@@ -34,6 +34,17 @@
 	WINDOW_CACHED_ICON_ORDER* m_windowCachedIcon;
 	NOTIFY_ICON_STATE_ORDER* m_notifyIconState;
 	MONITORED_DESKTOP_ORDER* m_monitoredDesktop;
+	RAIL_HANDSHAKE_EX_ORDER* m_handshakeEx;
+
+	RailClientContext* m_rail_context;
+	RAIL_EXEC_RESULT_ORDER* m_execResult;
+	RAIL_SYSPARAM_ORDER* m_sysparam;
+	RAIL_HANDSHAKE_ORDER* m_handshake;
+	RAIL_LOCALMOVESIZE_ORDER* m_localMoveSize;
+	RAIL_MINMAXINFO_ORDER* m_minMaxInfo;
+	RAIL_LANGBAR_INFO_ORDER* m_langBarInfo;
+	RAIL_GET_APPID_RESP_ORDER* m_getAppIdResp;
+
 	int m_rv;
 }
 
