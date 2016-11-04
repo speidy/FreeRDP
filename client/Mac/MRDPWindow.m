@@ -22,6 +22,7 @@
 #import "mfreerdp.h"
 #import "MRDPWindow.h"
 #import "MRDPWindowView.h"
+#import "MRDPRail.h"
 #import "freerdp/log.h"
 
 #define TAG CLIENT_TAG("mac")
@@ -43,26 +44,15 @@
 	return YES;
 }
 
-- (void)deminiaturize:(id)sender
-{
-	NSLog(@"deminiaturize");
-	[super deminiaturize:sender];
-}
-
-- (void)miniaturize:(id)sender
-{
-	NSLog(@"miniaturize");
-	[super miniaturize:sender];
-}
-
 - (void)windowDidMiniaturize:(NSNotification *)notification
 {
-	NSLog(@"windowDidMiniaturize");
+	/* shouldn't really happen from borderless local window */
+	mac_rail_send_client_system_command(mfc, self.windowId, SC_MINIMIZE);
 }
 
--(void)windowDidDeminiaturize:(NSNotification *)notification
+- (void)windowDidDeminiaturize:(NSNotification *)notification
 {
-	NSLog(@"windowDidDeminiaturize");
+	mac_rail_send_client_system_command(mfc, self.windowId, SC_RESTORE);
 }
 
 /* mouse stuff */
@@ -531,6 +521,7 @@
 			[NSApp activateIgnoringOtherApps:YES];
 			break;
 	}
+	self.rail_state = state;
 }
 
 @end

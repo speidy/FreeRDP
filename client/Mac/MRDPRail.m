@@ -439,6 +439,16 @@ void mac_rail_paint(mfContext* mfc, INT32 uleft, INT32 utop, UINT32 uright, UINT
 
 @end
 
+void mac_rail_send_client_system_command(mfContext* mfc, UINT32 windowId, UINT16 command)
+{
+	RAIL_SYSCOMMAND_ORDER syscommand;
+	
+	syscommand.windowId = windowId;
+	syscommand.command = command;
+	
+	mfc->rail->ClientSystemCommand(mfc->rail, &syscommand);
+}
+
 static UINT mac_rail_server_execute_result(RailClientContext* context, RAIL_EXEC_RESULT_ORDER* execResult)
 {
 	return CHANNEL_RC_OK;
