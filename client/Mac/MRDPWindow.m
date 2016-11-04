@@ -29,28 +29,28 @@
 
 @implementation MRDPWindow
 
-- (BOOL)becomeFirstResponder
+- (BOOL) becomeFirstResponder
 {
 	return YES;
 }
 
-- (BOOL)canBecomeKeyWindow
+- (BOOL) canBecomeKeyWindow
 {
 	return YES;
 }
 
-- (BOOL)canBecomeMainWindow
+- (BOOL) canBecomeMainWindow
 {
 	return YES;
 }
 
-- (void)windowDidMiniaturize:(NSNotification *)notification
+- (void) windowDidMiniaturize:(NSNotification *)notification
 {
 	/* shouldn't really happen from borderless local window */
 	mac_rail_send_client_system_command(mfc, self.windowId, SC_MINIMIZE);
 }
 
-- (void)windowDidDeminiaturize:(NSNotification *)notification
+- (void) windowDidDeminiaturize:(NSNotification *)notification
 {
 	mac_rail_send_client_system_command(mfc, self.windowId, SC_RESTORE);
 }
@@ -76,7 +76,7 @@
 	[self send_mouse_position:PTR_FLAGS_MOVE x:x y:y];
 }
 
-- (void)mouseDown:(NSEvent *) event
+- (void) mouseDown:(NSEvent *) event
 {
 	[super mouseDown:event];
 	
@@ -144,8 +144,6 @@
 
 - (void) scrollWheel:(NSEvent *)event
 {
-//TODO
-#if 0
 	UINT16 flags;
 	
 	[super scrollWheel:event];
@@ -160,30 +158,25 @@
 	int units = [event deltaY] * 120;
 	
 	/* send out all accumulated rotations */
-	while(units != 0)
+	while (units != 0)
 	{
 		/* limit to maximum value in WheelRotationMask (9bit signed value) */
 		int step = MIN(MAX(-256, units), 255);
 		
-		[self scale_mouse_position:flags | ((UINT16)step & WheelRotationMask) x:x y:y];
+		[self send_mouse_position:(flags | ((UINT16)step & WheelRotationMask)) x:x y:y];
 		units -= step;
 	}
-#endif
 }
 
 - (void) mouseDragged:(NSEvent *)event
 {
-//TODO
-#if 0
 	[super mouseDragged:event];
 	
 	NSPoint loc = [event locationInWindow];
 	int x = (int) loc.x;
 	int y = (int) loc.y;
 	
-	// send mouse motion event to RDP server
-	[self scale_mouse_position:PTR_FLAGS_MOVE x:x y:y];
-#endif
+	[self send_mouse_position:PTR_FLAGS_MOVE x:x y:y];
 }
 
 /* keyboard stuff */
