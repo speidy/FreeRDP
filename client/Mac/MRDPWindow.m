@@ -22,6 +22,7 @@
 #import "mfreerdp.h"
 #import "MRDPWindow.h"
 #import "MRDPWindowView.h"
+#import "MRDPRail.h"
 #import "freerdp/log.h"
 
 #define TAG CLIENT_TAG("mac")
@@ -43,16 +44,15 @@
 	return YES;
 }
 
-- (void)deminiaturize:(id)sender
+- (void)windowDidMiniaturize:(NSNotification *)notification
 {
-	NSLog(@"deminiaturize");
-	[super deminiaturize:sender];
+	/* shouldn't really happen from borderless local window */
+	mac_rail_send_client_system_command(mfc, self.windowId, SC_MINIMIZE);
 }
 
-- (void)miniaturize:(id)sender
+- (void)windowDidDeminiaturize:(NSNotification *)notification
 {
-	NSLog(@"miniaturize");
-	[super miniaturize:sender];
+	mac_rail_send_client_system_command(mfc, self.windowId, SC_RESTORE);
 }
 
 /* mouse stuff */
@@ -414,7 +414,6 @@
 -(id) initWithContentRect:(NSRect)contentRect styleMask:(NSUInteger)aStyle backing:(NSBackingStoreType)bufferingType defer:(BOOL)flag
 {
 	self = [super initWithContentRect:contentRect styleMask:aStyle backing:bufferingType defer:flag];
-	
 	return self;
 }
 
@@ -436,6 +435,7 @@
 	[self setTitle: [NSString stringWithUTF8String: self.wnd_title]];
 	[self setBackgroundColor:[NSColor clearColor]];
 	[self setContentView: view];
+	[self setDelegate:self];
 }
 
 - (void) mf_DestroyWindow;
@@ -521,6 +521,7 @@
 			[NSApp activateIgnoringOtherApps:YES];
 			break;
 	}
+	self.rail_state = state;
 }
 
 @end
