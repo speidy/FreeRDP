@@ -55,6 +55,16 @@
 	[super miniaturize:sender];
 }
 
+- (void)windowDidMiniaturize:(NSNotification *)notification
+{
+	NSLog(@"windowDidMiniaturize");
+}
+
+-(void)windowDidDeminiaturize:(NSNotification *)notification
+{
+	NSLog(@"windowDidDeminiaturize");
+}
+
 /* mouse stuff */
 - (void) send_mouse_position:(UINT16)flags x:(UINT16)x y:(UINT16) y
 {
@@ -414,7 +424,6 @@
 -(id) initWithContentRect:(NSRect)contentRect styleMask:(NSUInteger)aStyle backing:(NSBackingStoreType)bufferingType defer:(BOOL)flag
 {
 	self = [super initWithContentRect:contentRect styleMask:aStyle backing:bufferingType defer:flag];
-	
 	return self;
 }
 
@@ -436,6 +445,7 @@
 	[self setTitle: [NSString stringWithUTF8String: self.wnd_title]];
 	[self setBackgroundColor:[NSColor clearColor]];
 	[self setContentView: view];
+	[self setDelegate:self];
 }
 
 - (void) mf_DestroyWindow;
