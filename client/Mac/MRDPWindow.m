@@ -187,12 +187,6 @@
 	int x = (int) loc.x;
 	int y = (int) loc.y;
 	
-	if (y < self.height - 20)
-	{
-		/* window move */
-		NSLog(@"Move window... %d", y);
-		mac_rail_send_client_window_move(mfc, self.windowId, self.windowOffsetX + x, y + self.windowOffsetY, self.windowOffsetX + x + self.width, self.windowOffsetY + y - self.height);
-	}
 	[self send_mouse_position:PTR_FLAGS_MOVE x:x y:y];
 }
 
