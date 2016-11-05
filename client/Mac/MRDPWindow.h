@@ -27,7 +27,6 @@
 {
 	mfContext *mfc;
 	freerdp *instance;
-	DWORD kbdModFlags;
 }
 
 @property (nonatomic) int x;

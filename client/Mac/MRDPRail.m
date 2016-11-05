@@ -116,7 +116,6 @@ void mac_rail_paint(mfContext* mfc, INT32 uleft, INT32 utop, UINT32 uright, UINT
 															  (void*) (UINT_PTR) windowState->ownerWindowId);
 		if (appWindowOwner != NULL)
 		{
-			NSLog(@"add child...");
 			[appWindowOwner addChildWindow:appWindow ordered:NSWindowAbove];
 		}
 		if (appWindow == NULL)

@@ -24,8 +24,11 @@
 
 @interface MRDPWindowView : NSView
 {
-	mfContext *mfc;
-	MRDPWindow *mfAppWindow;
+	mfContext* mfc;
+	freerdp* instance;
+	MRDPWindow* mfAppWindow;
+	NSTrackingArea* trackingArea;
+	DWORD kbdModFlags;
 @public
 
 }
