@@ -97,6 +97,7 @@ void mac_rail_paint(mfContext* mfc, INT32 uleft, INT32 utop, UINT32 uright, UINT
 		ws:(WINDOW_STATE_ORDER*) windowState
 {
 	MRDPWindow* appWindow = NULL;
+	MRDPWindow* appWindowOwner = NULL;
 	UINT32 fieldFlags = orderInfo->fieldFlags;
 	mfContext* mfc = (mfContext*) context;
 	BOOL position_or_size_updated = FALSE;
@@ -108,9 +109,16 @@ void mac_rail_paint(mfContext* mfc, INT32 uleft, INT32 utop, UINT32 uright, UINT
 		rect = NSMakeRect(windowState->windowOffsetX, windowState->windowOffsetY,
 				windowState->windowWidth, windowState->windowHeight);
 		rect.origin.y = mfc->context.settings->DesktopHeight - (rect.origin.y + rect.size.height);
-		NSUInteger styleMask = NSBorderlessWindowMask;
+		NSUInteger styleMask = NSBorderlessWindowMask | NSResizableWindowMask;
 		appWindow = [appWindow initWithContentRect:rect
 				styleMask:styleMask backing:NSBackingStoreBuffered defer:NO];
+		appWindowOwner = (MRDPWindow*) HashTable_GetItemValue(mfc->railWindows,
+															  (void*) (UINT_PTR) windowState->ownerWindowId);
+		if (appWindowOwner != NULL)
+		{
+			NSLog(@"add child...");
+			[appWindowOwner addChildWindow:appWindow ordered:NSWindowAbove];
+		}
 		if (appWindow == NULL)
 		{
 			return FALSE;
@@ -447,6 +455,20 @@ void mac_rail_send_client_system_command(mfContext* mfc, UINT32 windowId, UINT16
 	syscommand.command = command;
 	
 	mfc->rail->ClientSystemCommand(mfc->rail, &syscommand);
+}
+
+void mac_rail_send_client_window_move(mfContext* mfc, UINT32 windowId, UINT16 left, UINT16 top,
+									  UINT16 right, UINT16 bottom)
+{
+	RAIL_WINDOW_MOVE_ORDER window_move;
+	
+	window_move.windowId = windowId;
+	window_move.left = left;
+	window_move.top = top;
+	window_move.right = right;
+	window_move.bottom = bottom;
+	
+	mfc->rail->ClientWindowMove(mfc->rail, &window_move);
 }
 
 static UINT mac_rail_server_execute_result(RailClientContext* context, RAIL_EXEC_RESULT_ORDER* execResult)

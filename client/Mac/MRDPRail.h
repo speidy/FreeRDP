@@ -89,5 +89,7 @@ void mac_rail_init(mfContext* mfc, RailClientContext* rail);
 void mac_rail_uninit(mfContext* mfc, RailClientContext* rail);
 void mac_rail_paint(mfContext* xfc, INT32 uleft, INT32 utop, UINT32 uright, UINT32 ubottom);
 void mac_rail_send_client_system_command(mfContext* mfc, UINT32 windowId, UINT16 command);
+void mac_rail_send_client_window_move(mfContext* mfc, UINT32 windowId, UINT16 left, UINT16 top,
+									  UINT16 right, UINT16 bottom);
 
 #endif /* MRDPRail_h */

@@ -36,6 +36,11 @@
 
 - (BOOL) canBecomeKeyWindow
 {
+	NSWindow *parent = [self parentWindow];
+	if (parent)
+	{
+		return NO;
+	}
 	return YES;
 }
 
@@ -53,6 +58,12 @@
 - (void) windowDidDeminiaturize:(NSNotification *)notification
 {
 	mac_rail_send_client_system_command(mfc, self.windowId, SC_RESTORE);
+}
+
+- (void) windowDidResize:(NSNotification *)notification
+{
+	NSLog(@"Resize, %f %f %f %f", self.frame.origin.x, self.frame.origin.y, self.frame.size.width, self.frame.size.height);
+//	mac_rail_send_client_window_move(mfc, self.windowId, self.x, self.y, self.width, self.height);
 }
 
 /* mouse stuff */
@@ -176,6 +187,12 @@
 	int x = (int) loc.x;
 	int y = (int) loc.y;
 	
+	if (y < self.height - 20)
+	{
+		/* window move */
+		NSLog(@"Move window... %d", y);
+		mac_rail_send_client_window_move(mfc, self.windowId, self.windowOffsetX + x, y + self.windowOffsetY, self.windowOffsetX + x + self.width, self.windowOffsetY + y - self.height);
+	}
 	[self send_mouse_position:PTR_FLAGS_MOVE x:x y:y];
 }
 
@@ -429,6 +446,12 @@
 	[self setBackgroundColor:[NSColor clearColor]];
 	[self setContentView: view];
 	[self setDelegate:self];
+	
+	/* add only window owners to window menu */
+	if (self.canBecomeKeyWindow)
+	{
+		[NSApp addWindowsItem:self title:[self title] filename:NO];
+	}
 }
 
 - (void) mf_DestroyWindow;
