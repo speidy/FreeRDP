@@ -22,6 +22,10 @@
 
 @implementation MRDPWindowView
 
+- (BOOL)acceptsFirstMouse:(NSEvent *)theEvent
+{
+	return YES;
+}
 
 - (void)init_view: (mfContext*) context appWindow:(MRDPWindow *)appWindow
 {
