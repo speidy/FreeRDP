@@ -77,6 +77,7 @@
 		er:(RAIL_EXEC_RESULT_ORDER*) execResult;
 - (UINT) mac_rail_server_system_param:(RailClientContext*) context
 		sp:(RAIL_SYSPARAM_ORDER*) sysparam;
+- (UINT) mac_rail_server_handshake:(RailClientContext*) context hs:(RAIL_HANDSHAKE_ORDER*) handshake;
 
 - (void) mac_window_common_sync;
 - (void) mac_window_delete_sync;

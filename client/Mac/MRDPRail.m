@@ -411,6 +411,62 @@ void mac_rail_paint(mfContext* mfc, INT32 uleft, INT32 utop, UINT32 uright, UINT
 	return CHANNEL_RC_OK;
 }
 
+- (UINT) mac_rail_server_handshake:(RailClientContext*) context hs:(RAIL_HANDSHAKE_ORDER*) handshake
+{
+	RAIL_EXEC_ORDER exec;
+	RAIL_SYSPARAM_ORDER sysparam;
+	RAIL_HANDSHAKE_ORDER clientHandshake;
+	RAIL_CLIENT_STATUS_ORDER clientStatus;
+	RAIL_LANGBAR_INFO_ORDER langBarInfo;
+	mfContext* mfc = (mfContext*) context->custom;
+	rdpSettings* settings = mfc->context.settings;
+
+	ZeroMemory(&clientHandshake, sizeof(clientHandshake));
+	clientHandshake.buildNumber = 0x00001DB0;
+	context->ClientHandshake(context, &clientHandshake);
+
+	ZeroMemory(&clientStatus, sizeof(RAIL_CLIENT_STATUS_ORDER));
+	clientStatus.flags = RAIL_CLIENTSTATUS_ALLOWLOCALMOVESIZE;
+	context->ClientInformation(context, &clientStatus);
+
+	if (settings->RemoteAppLanguageBarSupported)
+	{
+		ZeroMemory(&langBarInfo, sizeof(langBarInfo));
+		langBarInfo.languageBarStatus = 0x00000008; /* TF_SFT_HIDDEN */
+		context->ClientLanguageBarInfo(context, &langBarInfo);
+	}
+
+	ZeroMemory(&sysparam, sizeof(RAIL_SYSPARAM_ORDER));
+	sysparam.params = 0;
+	sysparam.params |= SPI_MASK_SET_HIGH_CONTRAST;
+	sysparam.highContrast.colorScheme.string = NULL;
+	sysparam.highContrast.colorScheme.length = 0;
+	sysparam.highContrast.flags = 0x7E;
+	sysparam.params |= SPI_MASK_SET_MOUSE_BUTTON_SWAP;
+	sysparam.mouseButtonSwap = FALSE;
+	sysparam.params |= SPI_MASK_SET_KEYBOARD_PREF;
+	sysparam.keyboardPref = FALSE;
+	sysparam.params |= SPI_MASK_SET_DRAG_FULL_WINDOWS;
+	sysparam.dragFullWindows = FALSE;
+	sysparam.params |= SPI_MASK_SET_KEYBOARD_CUES;
+	sysparam.keyboardCues = FALSE;
+	sysparam.params |= SPI_MASK_SET_WORK_AREA;
+	sysparam.workArea.left = 0;
+	sysparam.workArea.top = 0;
+	sysparam.workArea.right = settings->DesktopWidth;
+	sysparam.workArea.bottom = settings->DesktopHeight;
+	sysparam.dragFullWindows = FALSE;
+	context->ClientSystemParam(context, &sysparam);
+
+	ZeroMemory(&exec, sizeof(RAIL_EXEC_ORDER));
+	exec.RemoteApplicationProgram = settings->RemoteApplicationProgram;
+	exec.RemoteApplicationWorkingDir = settings->ShellWorkingDirectory;
+	exec.RemoteApplicationArguments = settings->RemoteApplicationCmdLine;
+	context->ClientExecute(context, &exec);
+
+	return CHANNEL_RC_OK;
+}
+
 - (void) mac_window_common_sync;
 {
 	m_rv = [self mac_window_common:m_context oi:m_orderInfo ws:m_windowState];
@@ -479,7 +535,7 @@ void mac_rail_send_client_system_command(mfContext* mfc, UINT32 windowId, UINT16
 }
 
 void mac_rail_send_client_window_move(mfContext* mfc, UINT32 windowId, UINT16 left, UINT16 top,
-									  UINT16 right, UINT16 bottom)
+		UINT16 right, UINT16 bottom)
 {
 	RAIL_WINDOW_MOVE_ORDER window_move;
 
@@ -489,62 +545,6 @@ void mac_rail_send_client_window_move(mfContext* mfc, UINT32 windowId, UINT16 le
 	window_move.right = right;
 	window_move.bottom = bottom;
 	mfc->rail->ClientWindowMove(mfc->rail, &window_move);
-}
-
-static UINT mac_rail_server_handshake(RailClientContext* context, RAIL_HANDSHAKE_ORDER* handshake)
-{
-	RAIL_EXEC_ORDER exec;
-	RAIL_SYSPARAM_ORDER sysparam;
-	RAIL_HANDSHAKE_ORDER clientHandshake;
-	RAIL_CLIENT_STATUS_ORDER clientStatus;
-	RAIL_LANGBAR_INFO_ORDER langBarInfo;
-	mfContext* mfc = (mfContext*) context->custom;
-	rdpSettings* settings = mfc->context.settings;
-
-	ZeroMemory(&clientHandshake, sizeof(clientHandshake));
-	clientHandshake.buildNumber = 0x00001DB0;
-	context->ClientHandshake(context, &clientHandshake);
-
-	ZeroMemory(&clientStatus, sizeof(RAIL_CLIENT_STATUS_ORDER));
-	clientStatus.flags = RAIL_CLIENTSTATUS_ALLOWLOCALMOVESIZE;
-	context->ClientInformation(context, &clientStatus);
-
-	if (settings->RemoteAppLanguageBarSupported)
-	{
-		ZeroMemory(&langBarInfo, sizeof(langBarInfo));
-		langBarInfo.languageBarStatus = 0x00000008; /* TF_SFT_HIDDEN */
-		context->ClientLanguageBarInfo(context, &langBarInfo);
-	}
-
-	ZeroMemory(&sysparam, sizeof(RAIL_SYSPARAM_ORDER));
-	sysparam.params = 0;
-	sysparam.params |= SPI_MASK_SET_HIGH_CONTRAST;
-	sysparam.highContrast.colorScheme.string = NULL;
-	sysparam.highContrast.colorScheme.length = 0;
-	sysparam.highContrast.flags = 0x7E;
-	sysparam.params |= SPI_MASK_SET_MOUSE_BUTTON_SWAP;
-	sysparam.mouseButtonSwap = FALSE;
-	sysparam.params |= SPI_MASK_SET_KEYBOARD_PREF;
-	sysparam.keyboardPref = FALSE;
-	sysparam.params |= SPI_MASK_SET_DRAG_FULL_WINDOWS;
-	sysparam.dragFullWindows = FALSE;
-	sysparam.params |= SPI_MASK_SET_KEYBOARD_CUES;
-	sysparam.keyboardCues = FALSE;
-	sysparam.params |= SPI_MASK_SET_WORK_AREA;
-	sysparam.workArea.left = 0;
-	sysparam.workArea.top = 0;
-	sysparam.workArea.right = settings->DesktopWidth;
-	sysparam.workArea.bottom = settings->DesktopHeight;
-	sysparam.dragFullWindows = FALSE;
-	context->ClientSystemParam(context, &sysparam);
-
-	ZeroMemory(&exec, sizeof(RAIL_EXEC_ORDER));
-	exec.RemoteApplicationProgram = settings->RemoteApplicationProgram;
-	exec.RemoteApplicationWorkingDir = settings->ShellWorkingDirectory;
-	exec.RemoteApplicationArguments = settings->RemoteApplicationCmdLine;
-	context->ClientExecute(context, &exec);
-
-	return CHANNEL_RC_OK;
 }
 
 static UINT mac_rail_server_handshake_ex(RailClientContext* context, RAIL_HANDSHAKE_EX_ORDER* handshakeEx)
@@ -746,6 +746,23 @@ UINT mac_rail_server_system_param(RailClientContext* context, RAIL_SYSPARAM_ORDE
 		return rdpRail->m_rv;
 	}
 	return [rdpRail mac_rail_server_system_param:context sp:sysparam];
+}
+
+static UINT mac_rail_server_handshake(RailClientContext* context, RAIL_HANDSHAKE_ORDER* handshake)
+{
+	mfContext* mfc = (mfContext*) (context->custom);
+	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
+
+	if ([NSThread isMainThread] == 0)
+	{
+		__block UINT rv = CHANNEL_RC_OK;
+
+		dispatch_sync(dispatch_get_main_queue(), ^{
+			rv = [rdpRail mac_rail_server_handshake:context hs:handshake];
+		});
+		return rv;
+	}
+	return [rdpRail mac_rail_server_handshake:context hs:handshake];
 }
 
 void mac_rail_init(mfContext* mfc, RailClientContext* rail)
