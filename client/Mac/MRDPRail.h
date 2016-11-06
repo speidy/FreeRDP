@@ -75,6 +75,8 @@
 
 - (UINT) mac_rail_server_execute_result:(RailClientContext*) context
 		er:(RAIL_EXEC_RESULT_ORDER*) execResult;
+- (UINT) mac_rail_server_system_param:(RailClientContext*) context
+		sp:(RAIL_SYSPARAM_ORDER*) sysparam;
 
 - (void) mac_window_common_sync;
 - (void) mac_window_delete_sync;
@@ -87,6 +89,7 @@
 - (void) mac_rail_non_monitored_desktop_sync;
 
 - (void) mac_rail_server_execute_result_sync;
+- (void) mac_rail_server_system_param_sync;
 
 @end
 
