@@ -27,25 +27,7 @@
 @interface MRDPRail : NSObject
 {
 @public
-	rdpContext* m_context;
-	WINDOW_ORDER_INFO* m_orderInfo;
-	WINDOW_STATE_ORDER* m_windowState;
-	WINDOW_ICON_ORDER* m_windowIcon;
-	WINDOW_CACHED_ICON_ORDER* m_windowCachedIcon;
-	NOTIFY_ICON_STATE_ORDER* m_notifyIconState;
-	MONITORED_DESKTOP_ORDER* m_monitoredDesktop;
-	RAIL_HANDSHAKE_EX_ORDER* m_handshakeEx;
 
-	RailClientContext* m_rail_context;
-	RAIL_EXEC_RESULT_ORDER* m_execResult;
-	RAIL_SYSPARAM_ORDER* m_sysparam;
-	RAIL_HANDSHAKE_ORDER* m_handshake;
-	RAIL_LOCALMOVESIZE_ORDER* m_localMoveSize;
-	RAIL_MINMAXINFO_ORDER* m_minMaxInfo;
-	RAIL_LANGBAR_INFO_ORDER* m_langBarInfo;
-	RAIL_GET_APPID_RESP_ORDER* m_getAppIdResp;
-
-	int m_rv;
 }
 
 - (BOOL) mac_window_common :(rdpContext*) context
@@ -77,20 +59,8 @@
 		er:(RAIL_EXEC_RESULT_ORDER*) execResult;
 - (UINT) mac_rail_server_system_param:(RailClientContext*) context
 		sp:(RAIL_SYSPARAM_ORDER*) sysparam;
-- (UINT) mac_rail_server_handshake:(RailClientContext*) context hs:(RAIL_HANDSHAKE_ORDER*) handshake;
-
-- (void) mac_window_common_sync;
-- (void) mac_window_delete_sync;
-- (void) mac_window_icon_sync;
-- (void) mac_window_cached_icon_sync;
-- (void) mac_rail_notify_icon_create_sync;
-- (void) mac_rail_notify_icon_update_sync;
-- (void) mac_rail_notify_icon_delete_sync;
-- (void) mac_rail_monitored_desktop_sync;
-- (void) mac_rail_non_monitored_desktop_sync;
-
-- (void) mac_rail_server_execute_result_sync;
-- (void) mac_rail_server_system_param_sync;
+- (UINT) mac_rail_server_handshake:(RailClientContext*) context
+		hs:(RAIL_HANDSHAKE_ORDER*) handshake;
 
 @end
 

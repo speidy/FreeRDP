@@ -467,61 +467,6 @@ void mac_rail_paint(mfContext* mfc, INT32 uleft, INT32 utop, UINT32 uright, UINT
 	return CHANNEL_RC_OK;
 }
 
-- (void) mac_window_common_sync;
-{
-	m_rv = [self mac_window_common:m_context oi:m_orderInfo ws:m_windowState];
-}
-
-- (void) mac_window_delete_sync;
-{
-	m_rv = [self mac_window_delete:m_context oi:m_orderInfo];
-}
-
-- (void) mac_window_icon_sync;
-{
-	m_rv = [self mac_window_icon:m_context oi:m_orderInfo wi:m_windowIcon];
-}
-
-- (void) mac_window_cached_icon_sync;
-{
-	m_rv = [self mac_window_cached_icon:m_context oi:m_orderInfo wci:m_windowCachedIcon];
-}
-
-- (void) mac_rail_notify_icon_create_sync;
-{
-	m_rv = [self mac_rail_notify_icon_create:m_context oi:m_orderInfo nis:m_notifyIconState];
-}
-
-- (void) mac_rail_notify_icon_update_sync;
-{
-	m_rv = [self mac_rail_notify_icon_update:m_context oi:m_orderInfo nis:m_notifyIconState];
-}
-
-- (void) mac_rail_notify_icon_delete_sync;
-{
-	m_rv = [self mac_rail_notify_icon_delete:m_context oi:m_orderInfo];
-}
-
-- (void) mac_rail_moditored_desktop_sync;
-{
-	m_rv = [self mac_rail_monitored_desktop:m_context oi:m_orderInfo md:m_monitoredDesktop];
-}
-
-- (void) mac_rail_non_moditored_desktop_sync;
-{
-	m_rv = [self mac_rail_non_monitored_desktop:m_context oi:m_orderInfo];
-}
-
-- (void) mac_rail_server_execute_result_sync;
-{
-	m_rv = [self mac_rail_server_execute_result:m_rail_context er:m_execResult];
-}
-
-- (void) mac_rail_server_system_param_sync;
-{
-	m_rv = [self mac_rail_server_system_param:m_rail_context sp:m_sysparam];
-}
-
 @end
 
 void mac_rail_send_client_system_command(mfContext* mfc, UINT32 windowId, UINT16 command)
@@ -578,12 +523,12 @@ BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW
 	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
 	if ([NSThread isMainThread] == 0)
 	{
-		rdpRail->m_context = context;
-		rdpRail->m_orderInfo = orderInfo;
-		rdpRail->m_windowState = windowState;
-		[rdpRail performSelectorOnMainThread:@selector(mac_window_common_sync)
-				withObject:nil waitUntilDone:YES];
-		return rdpRail->m_rv;
+		__block BOOL rv = TRUE;
+
+		dispatch_sync(dispatch_get_main_queue(), ^{
+			rv = [rdpRail mac_window_common:context oi:orderInfo ws:windowState];
+		});
+		return rv;
 	}
 	return [rdpRail mac_window_common:context oi:orderInfo ws:windowState];
 }
@@ -594,11 +539,12 @@ BOOL mac_window_delete(rdpContext* context, WINDOW_ORDER_INFO* orderInfo)
 	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
 	if ([NSThread isMainThread] == 0)
 	{
-		rdpRail->m_context = context;
-		rdpRail->m_orderInfo = orderInfo;
-		[rdpRail performSelectorOnMainThread:@selector(mac_window_delete_sync)
-				withObject:nil waitUntilDone:YES];
-		return rdpRail->m_rv;
+		__block BOOL rv = TRUE;
+
+		dispatch_sync(dispatch_get_main_queue(), ^{
+			rv = [rdpRail mac_window_delete:context oi:orderInfo];
+		});
+		return rv;
 	}
 	return [rdpRail mac_window_delete:context oi:orderInfo];
 }
@@ -610,12 +556,12 @@ BOOL mac_window_icon(rdpContext* context, WINDOW_ORDER_INFO* orderInfo,
 	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
 	if ([NSThread isMainThread] == 0)
 	{
-		rdpRail->m_context = context;
-		rdpRail->m_orderInfo = orderInfo;
-		rdpRail->m_windowIcon = windowIcon;
-		[rdpRail performSelectorOnMainThread:@selector(mac_window_icon_sync)
-				withObject:nil waitUntilDone:YES];
-		return rdpRail->m_rv;
+		__block BOOL rv = TRUE;
+
+		dispatch_sync(dispatch_get_main_queue(), ^{
+			rv = [rdpRail mac_window_icon:context oi:orderInfo wi:windowIcon];
+		});
+		return rv;
 	}
 	return [rdpRail mac_window_icon:context oi:orderInfo wi:windowIcon];
 }
@@ -627,12 +573,12 @@ BOOL mac_window_cached_icon(rdpContext* context, WINDOW_ORDER_INFO* orderInfo,
 	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
 	if ([NSThread isMainThread] == 0)
 	{
-		rdpRail->m_context = context;
-		rdpRail->m_orderInfo = orderInfo;
-		rdpRail->m_windowCachedIcon = windowCachedIcon;
-		[rdpRail performSelectorOnMainThread:@selector(mac_window_cached_icon_sync)
-				withObject:nil waitUntilDone:YES];
-		return rdpRail->m_rv;
+		__block BOOL rv = TRUE;
+
+		dispatch_sync(dispatch_get_main_queue(), ^{
+			rv = [rdpRail mac_window_cached_icon:context oi:orderInfo wci:windowCachedIcon];
+		});
+		return rv;
 	}
 	return [rdpRail mac_window_cached_icon:context oi:orderInfo wci:windowCachedIcon];
 }
@@ -644,12 +590,12 @@ BOOL mac_rail_notify_icon_create(rdpContext* context, WINDOW_ORDER_INFO* orderIn
 	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
 	if ([NSThread isMainThread] == 0)
 	{
-		rdpRail->m_context = context;
-		rdpRail->m_orderInfo = orderInfo;
-		rdpRail->m_notifyIconState = notifyIconState;
-		[rdpRail performSelectorOnMainThread:@selector(mac_rail_notify_icon_create_sync)
-				withObject:nil waitUntilDone:YES];
-		return rdpRail->m_rv;
+		__block BOOL rv = TRUE;
+
+		dispatch_sync(dispatch_get_main_queue(), ^{
+			rv = [rdpRail mac_rail_notify_icon_create:context oi:orderInfo nis:notifyIconState];
+		});
+		return rv;
 	}
 	return [rdpRail mac_rail_notify_icon_create:context oi:orderInfo nis:notifyIconState];
 }
@@ -661,12 +607,12 @@ BOOL mac_rail_notify_icon_update(rdpContext* context, WINDOW_ORDER_INFO* orderIn
 	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
 	if ([NSThread isMainThread] == 0)
 	{
-		rdpRail->m_context = context;
-		rdpRail->m_orderInfo = orderInfo;
-		rdpRail->m_notifyIconState = notifyIconState;
-		[rdpRail performSelectorOnMainThread:@selector(mac_rail_notify_icon_update_sync)
-				withObject:nil waitUntilDone:YES];
-		return rdpRail->m_rv;
+		__block BOOL rv = TRUE;
+
+		dispatch_sync(dispatch_get_main_queue(), ^{
+			rv = [rdpRail mac_rail_notify_icon_update:context oi:orderInfo nis:notifyIconState];
+		});
+		return rv;
 	}
 	return [rdpRail mac_rail_notify_icon_update:context oi:orderInfo nis:notifyIconState];
 }
@@ -677,11 +623,12 @@ BOOL mac_rail_notify_icon_delete(rdpContext* context, WINDOW_ORDER_INFO* orderIn
 	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
 	if ([NSThread isMainThread] == 0)
 	{
-		rdpRail->m_context = context;
-		rdpRail->m_orderInfo = orderInfo;
-		[rdpRail performSelectorOnMainThread:@selector(mac_rail_notify_icon_delete_sync)
-				withObject:nil waitUntilDone:YES];
-		return rdpRail->m_rv;
+		__block BOOL rv = TRUE;
+
+		dispatch_sync(dispatch_get_main_queue(), ^{
+			rv = [rdpRail mac_rail_notify_icon_delete:context oi:orderInfo];
+		});
+		return rv;
 	}
 	return [rdpRail mac_rail_notify_icon_delete:context oi:orderInfo];
 }
@@ -693,12 +640,12 @@ BOOL mac_rail_monitored_desktop(rdpContext* context, WINDOW_ORDER_INFO* orderInf
 	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
 	if ([NSThread isMainThread] == 0)
 	{
-		rdpRail->m_context = context;
-		rdpRail->m_orderInfo = orderInfo;
-		rdpRail->m_monitoredDesktop = monitoredDesktop;
-		[rdpRail performSelectorOnMainThread:@selector(mac_rail_monitored_desktop_sync)
-				withObject:nil waitUntilDone:YES];
-		return rdpRail->m_rv;
+		__block BOOL rv = TRUE;
+
+		dispatch_sync(dispatch_get_main_queue(), ^{
+			rv = [rdpRail mac_rail_monitored_desktop:context oi:orderInfo md: monitoredDesktop];
+		});
+		return rv;
 	}
 	return [rdpRail mac_rail_monitored_desktop:context oi:orderInfo md: monitoredDesktop];
 }
@@ -709,11 +656,12 @@ BOOL mac_rail_non_monitored_desktop(rdpContext* context, WINDOW_ORDER_INFO* orde
 	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
 	if ([NSThread isMainThread] == 0)
 	{
-		rdpRail->m_context = context;
-		rdpRail->m_orderInfo = orderInfo;
-		[rdpRail performSelectorOnMainThread:@selector(mac_rail_non_monitored_desktop_sync)
-				withObject:nil waitUntilDone:YES];
-		return rdpRail->m_rv;
+		__block BOOL rv = TRUE;
+
+		dispatch_sync(dispatch_get_main_queue(), ^{
+			rv = [rdpRail mac_rail_non_monitored_desktop:context oi:orderInfo];
+		});
+		return rv;
 	}
 	return [rdpRail mac_rail_non_monitored_desktop:context oi:orderInfo];
 }
@@ -724,11 +672,12 @@ UINT mac_rail_server_execute_result(RailClientContext* context, RAIL_EXEC_RESULT
 	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
 	if ([NSThread isMainThread] == 0)
 	{
-		rdpRail->m_rail_context = context;
-		rdpRail->m_execResult = execResult;
-		[rdpRail performSelectorOnMainThread:@selector(mac_rail_server_execute_result_sync)
-				withObject:nil waitUntilDone:YES];
-		return rdpRail->m_rv;
+		__block UINT rv = CHANNEL_RC_OK;
+
+		dispatch_sync(dispatch_get_main_queue(), ^{
+			rv = [rdpRail mac_rail_server_execute_result:context er:execResult];
+		});
+		return rv;
 	}
 	return [rdpRail mac_rail_server_execute_result:context er:execResult];
 }
@@ -739,11 +688,12 @@ UINT mac_rail_server_system_param(RailClientContext* context, RAIL_SYSPARAM_ORDE
 	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
 	if ([NSThread isMainThread] == 0)
 	{
-		rdpRail->m_rail_context = context;
-		rdpRail->m_sysparam = sysparam;
-		[rdpRail performSelectorOnMainThread:@selector(mac_rail_server_system_param_sync)
-				withObject:nil waitUntilDone:YES];
-		return rdpRail->m_rv;
+		__block UINT rv = CHANNEL_RC_OK;
+
+		dispatch_sync(dispatch_get_main_queue(), ^{
+			rv = [rdpRail mac_rail_server_system_param:context sp:sysparam];
+		});
+		return rv;
 	}
 	return [rdpRail mac_rail_server_system_param:context sp:sysparam];
 }
