@@ -399,6 +399,12 @@ void mac_rail_paint(mfContext* mfc, INT32 uleft, INT32 utop, UINT32 uright, UINT
 	return TRUE;
 }
 
+- (UINT) mac_rail_server_execute_result:(RailClientContext*) context
+		er:(RAIL_EXEC_RESULT_ORDER*) execResult;
+{
+	return CHANNEL_RC_OK;
+}
+
 - (void) mac_window_common_sync;
 {
 	m_rv = [self mac_window_common:m_context oi:m_orderInfo ws:m_windowState];
@@ -444,6 +450,11 @@ void mac_rail_paint(mfContext* mfc, INT32 uleft, INT32 utop, UINT32 uright, UINT
 	m_rv = [self mac_rail_non_monitored_desktop:m_context oi:m_orderInfo];
 }
 
+- (void) mac_rail_server_execute_result_sync;
+{
+	m_rv = [self mac_rail_server_execute_result:m_rail_context er:m_execResult];
+}
+
 @end
 
 void mac_rail_send_client_system_command(mfContext* mfc, UINT32 windowId, UINT16 command)
@@ -460,19 +471,13 @@ void mac_rail_send_client_window_move(mfContext* mfc, UINT32 windowId, UINT16 le
 									  UINT16 right, UINT16 bottom)
 {
 	RAIL_WINDOW_MOVE_ORDER window_move;
-	
+
 	window_move.windowId = windowId;
 	window_move.left = left;
 	window_move.top = top;
 	window_move.right = right;
 	window_move.bottom = bottom;
-	
 	mfc->rail->ClientWindowMove(mfc->rail, &window_move);
-}
-
-static UINT mac_rail_server_execute_result(RailClientContext* context, RAIL_EXEC_RESULT_ORDER* execResult)
-{
-	return CHANNEL_RC_OK;
 }
 
 static UINT mac_rail_server_system_param(RailClientContext* context, RAIL_SYSPARAM_ORDER* sysparam)
@@ -705,6 +710,21 @@ BOOL mac_rail_non_monitored_desktop(rdpContext* context, WINDOW_ORDER_INFO* orde
 		return rdpRail->m_rv;
 	}
 	return [rdpRail mac_rail_non_monitored_desktop:context oi:orderInfo];
+}
+
+UINT mac_rail_server_execute_result(RailClientContext* context, RAIL_EXEC_RESULT_ORDER* execResult)
+{
+	mfContext* mfc = (mfContext*) (context->custom);
+	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
+	if ([NSThread isMainThread] == 0)
+	{
+		rdpRail->m_rail_context = context;
+		rdpRail->m_execResult = execResult;
+		[rdpRail performSelectorOnMainThread:@selector(mac_rail_server_execute_result_sync)
+								  withObject:nil waitUntilDone:YES];
+		return rdpRail->m_rv;
+	}
+	return [rdpRail mac_rail_server_execute_result:context er:execResult];
 }
 
 void mac_rail_init(mfContext* mfc, RailClientContext* rail)

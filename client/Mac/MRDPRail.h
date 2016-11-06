@@ -73,6 +73,9 @@
 - (BOOL) mac_rail_non_monitored_desktop:(rdpContext*) context
 		oi:(WINDOW_ORDER_INFO*) orderInfo;
 
+- (UINT) mac_rail_server_execute_result:(RailClientContext*) context
+		er:(RAIL_EXEC_RESULT_ORDER*) execResult;
+
 - (void) mac_window_common_sync;
 - (void) mac_window_delete_sync;
 - (void) mac_window_icon_sync;
@@ -83,6 +86,8 @@
 - (void) mac_rail_monitored_desktop_sync;
 - (void) mac_rail_non_monitored_desktop_sync;
 
+- (void) mac_rail_server_execute_result_sync;
+
 @end
 
 void mac_rail_init(mfContext* mfc, RailClientContext* rail);
@@ -90,6 +95,6 @@ void mac_rail_uninit(mfContext* mfc, RailClientContext* rail);
 void mac_rail_paint(mfContext* xfc, INT32 uleft, INT32 utop, UINT32 uright, UINT32 ubottom);
 void mac_rail_send_client_system_command(mfContext* mfc, UINT32 windowId, UINT16 command);
 void mac_rail_send_client_window_move(mfContext* mfc, UINT32 windowId, UINT16 left, UINT16 top,
-									  UINT16 right, UINT16 bottom);
+		UINT16 right, UINT16 bottom);
 
 #endif /* MRDPRail_h */
