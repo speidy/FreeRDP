@@ -46,7 +46,7 @@
 		appWindow = [appWindow initWithContentRect:rect
 				styleMask:styleMask backing:NSBackingStoreBuffered defer:NO];
 		appWindowOwner = (MRDPWindow*) HashTable_GetItemValue(mfc->railWindows,
-															  (void*) (UINT_PTR) windowState->ownerWindowId);
+				(void*) (UINT_PTR) windowState->ownerWindowId);
 		if (appWindowOwner != NULL)
 		{
 			[appWindowOwner addChildWindow:appWindow ordered:NSWindowAbove];
