@@ -23,73 +23,6 @@
 #import "MRDPRail.h"
 #import "MRDPWindow.h"
 
-static void mac_rail_invalidate_region(mfContext* mfc, REGION16* invalidRegion)
-{
-	int index;
-	int count;
-	RECTANGLE_16 updateRect;
-	RECTANGLE_16 windowRect;
-	ULONG_PTR* pKeys = NULL;
-	MRDPWindow* appWindow;
-	const RECTANGLE_16* extents;
-	REGION16 windowInvalidRegion;
-
-	region16_init(&windowInvalidRegion);
-
-	count = HashTable_GetKeys(mfc->railWindows, &pKeys);
-
-	for (index = 0; index < count; index++)
-	{
-		appWindow = (MRDPWindow*) HashTable_GetItemValue(mfc->railWindows, (void*) pKeys[index]);
-
-		if (appWindow)
-		{
-			windowRect.left = MAX(appWindow.x, 0);
-			windowRect.top = MAX(appWindow.y, 0);
-			windowRect.right = MAX(appWindow.x + appWindow.width, 0);
-			windowRect.bottom = MAX(appWindow.y + appWindow.height, 0);
-
-			region16_clear(&windowInvalidRegion);
-			region16_intersect_rect(&windowInvalidRegion, invalidRegion, &windowRect);
-
-			if (!region16_is_empty(&windowInvalidRegion))
-			{
-				extents = region16_extents(&windowInvalidRegion);
-
-				updateRect.left = extents->left - appWindow.x;
-				updateRect.top = extents->top - appWindow.y;
-				updateRect.right = extents->right - appWindow.x;
-				updateRect.bottom = extents->bottom - appWindow.y;
-
-				if (appWindow)
-				{
-					[appWindow mf_UpdateWindowArea:updateRect.left y:updateRect.top width:updateRect.right - updateRect.left height:updateRect.bottom - updateRect.top];
-				}
-			}
-		}
-	}
-
-	region16_uninit(&windowInvalidRegion);
-}
-
-void mac_rail_paint(mfContext* mfc, INT32 uleft, INT32 utop, UINT32 uright, UINT32 ubottom)
-{
-	REGION16 invalidRegion;
-	RECTANGLE_16 invalidRect;
-
-	invalidRect.left = uleft;
-	invalidRect.top = utop;
-	invalidRect.right = uright;
-	invalidRect.bottom = ubottom;
-
-	region16_init(&invalidRegion);
-	region16_union_rect(&invalidRegion, &invalidRegion, &invalidRect);
-
-	mac_rail_invalidate_region(mfc, &invalidRegion);
-
-	region16_uninit(&invalidRegion);
-}
-
 @implementation MRDPRail
 
 - (BOOL) mac_window_common :(rdpContext*) context
@@ -387,7 +320,6 @@ void mac_rail_paint(mfContext* mfc, INT32 uleft, INT32 utop, UINT32 uright, UINT
 
 - (BOOL) mac_rail_notify_icon_delete :(rdpContext*) context
 		oi:(WINDOW_ORDER_INFO*) orderInfo
-		nis:(NOTIFY_ICON_STATE_ORDER*) notifyIconState
 {
 	return TRUE;
 }
@@ -395,6 +327,12 @@ void mac_rail_paint(mfContext* mfc, INT32 uleft, INT32 utop, UINT32 uright, UINT
 - (BOOL) mac_rail_monitored_desktop:(rdpContext*) context
 		oi:(WINDOW_ORDER_INFO*) orderInfo
 		md:(MONITORED_DESKTOP_ORDER*) monitoredDesktop;
+{
+	return TRUE;
+}
+
+- (BOOL) mac_rail_non_monitored_desktop:(rdpContext*) context
+		oi:(WINDOW_ORDER_INFO*) orderInfo;
 {
 	return TRUE;
 }
@@ -467,57 +405,34 @@ void mac_rail_paint(mfContext* mfc, INT32 uleft, INT32 utop, UINT32 uright, UINT
 	return CHANNEL_RC_OK;
 }
 
+- (UINT) mac_rail_server_handshake_ex:(RailClientContext*) context he:(RAIL_HANDSHAKE_EX_ORDER*) handshakeEx
+{
+	return CHANNEL_RC_OK;
+}
+
+- (UINT) mac_rail_server_local_move_size:(RailClientContext*) context lm:(RAIL_LOCALMOVESIZE_ORDER*) localMoveSize
+{
+	return CHANNEL_RC_OK;
+}
+
+- (UINT) mac_rail_server_min_max_info:(RailClientContext*) context mm:(RAIL_MINMAXINFO_ORDER*) minMaxInfo
+{
+	return CHANNEL_RC_OK;
+}
+
+- (UINT) mac_rail_server_language_bar_info:(RailClientContext*) context lb:(RAIL_LANGBAR_INFO_ORDER*) langBarInfo
+{
+	return CHANNEL_RC_OK;
+}
+
+- (UINT) mac_rail_server_get_appid_response:(RailClientContext*) context ga:(RAIL_GET_APPID_RESP_ORDER*) getAppIdResp
+{
+	return CHANNEL_RC_OK;
+}
+
 @end
 
-void mac_rail_send_client_system_command(mfContext* mfc, UINT32 windowId, UINT16 command)
-{
-	RAIL_SYSCOMMAND_ORDER syscommand;
-	
-	syscommand.windowId = windowId;
-	syscommand.command = command;
-	
-	mfc->rail->ClientSystemCommand(mfc->rail, &syscommand);
-}
-
-void mac_rail_send_client_window_move(mfContext* mfc, UINT32 windowId, UINT16 left, UINT16 top,
-		UINT16 right, UINT16 bottom)
-{
-	RAIL_WINDOW_MOVE_ORDER window_move;
-
-	window_move.windowId = windowId;
-	window_move.left = left;
-	window_move.top = top;
-	window_move.right = right;
-	window_move.bottom = bottom;
-	mfc->rail->ClientWindowMove(mfc->rail, &window_move);
-}
-
-static UINT mac_rail_server_handshake_ex(RailClientContext* context, RAIL_HANDSHAKE_EX_ORDER* handshakeEx)
-{
-	return CHANNEL_RC_OK;
-}
-
-static UINT mac_rail_server_local_move_size(RailClientContext* context, RAIL_LOCALMOVESIZE_ORDER* localMoveSize)
-{
-	return CHANNEL_RC_OK;
-}
-
-static UINT mac_rail_server_min_max_info(RailClientContext* context, RAIL_MINMAXINFO_ORDER* minMaxInfo)
-{
-	return CHANNEL_RC_OK;
-}
-
-static UINT mac_rail_server_language_bar_info(RailClientContext* context, RAIL_LANGBAR_INFO_ORDER* langBarInfo)
-{
-	return CHANNEL_RC_OK;
-}
-
-static UINT mac_rail_server_get_appid_response(RailClientContext* context, RAIL_GET_APPID_RESP_ORDER* getAppIdResp)
-{
-	return CHANNEL_RC_OK;
-}
-
-BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW_STATE_ORDER* windowState)
+static BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW_STATE_ORDER* windowState)
 {
 	mfContext* mfc = (mfContext*)context;
 	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
@@ -533,7 +448,7 @@ BOOL mac_window_common(rdpContext* context, WINDOW_ORDER_INFO* orderInfo, WINDOW
 	return [rdpRail mac_window_common:context oi:orderInfo ws:windowState];
 }
 
-BOOL mac_window_delete(rdpContext* context, WINDOW_ORDER_INFO* orderInfo)
+static BOOL mac_window_delete(rdpContext* context, WINDOW_ORDER_INFO* orderInfo)
 {
 	mfContext* mfc = (mfContext*)context;
 	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
@@ -549,7 +464,7 @@ BOOL mac_window_delete(rdpContext* context, WINDOW_ORDER_INFO* orderInfo)
 	return [rdpRail mac_window_delete:context oi:orderInfo];
 }
 
-BOOL mac_window_icon(rdpContext* context, WINDOW_ORDER_INFO* orderInfo,
+static BOOL mac_window_icon(rdpContext* context, WINDOW_ORDER_INFO* orderInfo,
 		WINDOW_ICON_ORDER* windowIcon)
 {
 	mfContext* mfc = (mfContext*)context;
@@ -566,7 +481,7 @@ BOOL mac_window_icon(rdpContext* context, WINDOW_ORDER_INFO* orderInfo,
 	return [rdpRail mac_window_icon:context oi:orderInfo wi:windowIcon];
 }
 
-BOOL mac_window_cached_icon(rdpContext* context, WINDOW_ORDER_INFO* orderInfo,
+static BOOL mac_window_cached_icon(rdpContext* context, WINDOW_ORDER_INFO* orderInfo,
 		WINDOW_CACHED_ICON_ORDER* windowCachedIcon)
 {
 	mfContext* mfc = (mfContext*)context;
@@ -583,7 +498,7 @@ BOOL mac_window_cached_icon(rdpContext* context, WINDOW_ORDER_INFO* orderInfo,
 	return [rdpRail mac_window_cached_icon:context oi:orderInfo wci:windowCachedIcon];
 }
 
-BOOL mac_rail_notify_icon_create(rdpContext* context, WINDOW_ORDER_INFO* orderInfo,
+static BOOL mac_rail_notify_icon_create(rdpContext* context, WINDOW_ORDER_INFO* orderInfo,
 		NOTIFY_ICON_STATE_ORDER* notifyIconState)
 {
 	mfContext* mfc = (mfContext*)context;
@@ -600,7 +515,7 @@ BOOL mac_rail_notify_icon_create(rdpContext* context, WINDOW_ORDER_INFO* orderIn
 	return [rdpRail mac_rail_notify_icon_create:context oi:orderInfo nis:notifyIconState];
 }
 
-BOOL mac_rail_notify_icon_update(rdpContext* context, WINDOW_ORDER_INFO* orderInfo,
+static BOOL mac_rail_notify_icon_update(rdpContext* context, WINDOW_ORDER_INFO* orderInfo,
 		NOTIFY_ICON_STATE_ORDER* notifyIconState)
 {
 	mfContext* mfc = (mfContext*)context;
@@ -617,7 +532,7 @@ BOOL mac_rail_notify_icon_update(rdpContext* context, WINDOW_ORDER_INFO* orderIn
 	return [rdpRail mac_rail_notify_icon_update:context oi:orderInfo nis:notifyIconState];
 }
 
-BOOL mac_rail_notify_icon_delete(rdpContext* context, WINDOW_ORDER_INFO* orderInfo)
+static BOOL mac_rail_notify_icon_delete(rdpContext* context, WINDOW_ORDER_INFO* orderInfo)
 {
 	mfContext* mfc = (mfContext*)context;
 	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
@@ -633,7 +548,7 @@ BOOL mac_rail_notify_icon_delete(rdpContext* context, WINDOW_ORDER_INFO* orderIn
 	return [rdpRail mac_rail_notify_icon_delete:context oi:orderInfo];
 }
 
-BOOL mac_rail_monitored_desktop(rdpContext* context, WINDOW_ORDER_INFO* orderInfo,
+static BOOL mac_rail_monitored_desktop(rdpContext* context, WINDOW_ORDER_INFO* orderInfo,
 								MONITORED_DESKTOP_ORDER* monitoredDesktop)
 {
 	mfContext* mfc = (mfContext*)context;
@@ -650,7 +565,7 @@ BOOL mac_rail_monitored_desktop(rdpContext* context, WINDOW_ORDER_INFO* orderInf
 	return [rdpRail mac_rail_monitored_desktop:context oi:orderInfo md: monitoredDesktop];
 }
 
-BOOL mac_rail_non_monitored_desktop(rdpContext* context, WINDOW_ORDER_INFO* orderInfo)
+static BOOL mac_rail_non_monitored_desktop(rdpContext* context, WINDOW_ORDER_INFO* orderInfo)
 {
 	mfContext* mfc = (mfContext*)context;
 	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
@@ -666,7 +581,7 @@ BOOL mac_rail_non_monitored_desktop(rdpContext* context, WINDOW_ORDER_INFO* orde
 	return [rdpRail mac_rail_non_monitored_desktop:context oi:orderInfo];
 }
 
-UINT mac_rail_server_execute_result(RailClientContext* context, RAIL_EXEC_RESULT_ORDER* execResult)
+static UINT mac_rail_server_execute_result(RailClientContext* context, RAIL_EXEC_RESULT_ORDER* execResult)
 {
 	mfContext* mfc = (mfContext*) (context->custom);
 	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
@@ -682,7 +597,7 @@ UINT mac_rail_server_execute_result(RailClientContext* context, RAIL_EXEC_RESULT
 	return [rdpRail mac_rail_server_execute_result:context er:execResult];
 }
 
-UINT mac_rail_server_system_param(RailClientContext* context, RAIL_SYSPARAM_ORDER* sysparam)
+static UINT mac_rail_server_system_param(RailClientContext* context, RAIL_SYSPARAM_ORDER* sysparam)
 {
 	mfContext* mfc = (mfContext*) (context->custom);
 	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
@@ -713,6 +628,91 @@ static UINT mac_rail_server_handshake(RailClientContext* context, RAIL_HANDSHAKE
 		return rv;
 	}
 	return [rdpRail mac_rail_server_handshake:context hs:handshake];
+}
+
+static UINT mac_rail_server_handshake_ex(RailClientContext* context, RAIL_HANDSHAKE_EX_ORDER* handshakeEx)
+{
+	mfContext* mfc = (mfContext*) (context->custom);
+	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
+
+	if ([NSThread isMainThread] == 0)
+	{
+		__block UINT rv = CHANNEL_RC_OK;
+
+		dispatch_sync(dispatch_get_main_queue(), ^{
+			rv = [rdpRail mac_rail_server_handshake_ex:context he:handshakeEx];
+		});
+		return rv;
+	}
+	return [rdpRail mac_rail_server_handshake_ex:context he:handshakeEx];
+}
+
+static UINT mac_rail_server_local_move_size(RailClientContext* context, RAIL_LOCALMOVESIZE_ORDER* localMoveSize)
+{
+	mfContext* mfc = (mfContext*) (context->custom);
+	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
+
+	if ([NSThread isMainThread] == 0)
+	{
+		__block UINT rv = CHANNEL_RC_OK;
+
+		dispatch_sync(dispatch_get_main_queue(), ^{
+			rv = [rdpRail mac_rail_server_local_move_size:context lm:localMoveSize];
+		});
+		return rv;
+	}
+	return [rdpRail mac_rail_server_local_move_size:context lm:localMoveSize];
+}
+
+static UINT mac_rail_server_min_max_info(RailClientContext* context, RAIL_MINMAXINFO_ORDER* minMaxInfo)
+{
+	mfContext* mfc = (mfContext*) (context->custom);
+	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
+
+	if ([NSThread isMainThread] == 0)
+	{
+		__block UINT rv = CHANNEL_RC_OK;
+
+		dispatch_sync(dispatch_get_main_queue(), ^{
+			rv = [rdpRail mac_rail_server_min_max_info:context mm:minMaxInfo];
+		});
+		return rv;
+	}
+	return [rdpRail mac_rail_server_min_max_info:context mm:minMaxInfo];
+}
+
+static UINT mac_rail_server_language_bar_info(RailClientContext* context, RAIL_LANGBAR_INFO_ORDER* langBarInfo)
+{
+	mfContext* mfc = (mfContext*) (context->custom);
+	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
+
+	if ([NSThread isMainThread] == 0)
+	{
+		__block UINT rv = CHANNEL_RC_OK;
+
+		dispatch_sync(dispatch_get_main_queue(), ^{
+			rv = [rdpRail mac_rail_server_language_bar_info:context lb:langBarInfo];
+		});
+		return rv;
+	}
+	return [rdpRail mac_rail_server_language_bar_info:context lb:langBarInfo];
+}
+
+static UINT mac_rail_server_get_appid_response(RailClientContext* context, RAIL_GET_APPID_RESP_ORDER* getAppIdResp)
+{
+	mfContext* mfc = (mfContext*) (context->custom);
+	MRDPRail *rdpRail = (MRDPRail*) (mfc->mrail);
+
+	if ([NSThread isMainThread] == 0)
+	{
+		__block UINT rv = CHANNEL_RC_OK;
+
+		dispatch_sync(dispatch_get_main_queue(), ^{
+			rv = [rdpRail mac_rail_server_get_appid_response:context ga:getAppIdResp];
+		});
+		return rv;
+	}
+	return [rdpRail mac_rail_server_get_appid_response:context ga:getAppIdResp];
 }
 
 void mac_rail_init(mfContext* mfc, RailClientContext* rail)
@@ -754,3 +754,94 @@ void mac_rail_uninit(mfContext* mfc, RailClientContext* rail)
 	mfc->rail = NULL;
 	mfc->railWindows = NULL;
 }
+
+static void mac_rail_invalidate_region(mfContext* mfc, REGION16* invalidRegion)
+{
+	int index;
+	int count;
+	RECTANGLE_16 updateRect;
+	RECTANGLE_16 windowRect;
+	ULONG_PTR* pKeys = NULL;
+	MRDPWindow* appWindow;
+	const RECTANGLE_16* extents;
+	REGION16 windowInvalidRegion;
+
+	region16_init(&windowInvalidRegion);
+
+	count = HashTable_GetKeys(mfc->railWindows, &pKeys);
+
+	for (index = 0; index < count; index++)
+	{
+		appWindow = (MRDPWindow*) HashTable_GetItemValue(mfc->railWindows, (void*) pKeys[index]);
+
+		if (appWindow)
+		{
+			windowRect.left = MAX(appWindow.x, 0);
+			windowRect.top = MAX(appWindow.y, 0);
+			windowRect.right = MAX(appWindow.x + appWindow.width, 0);
+			windowRect.bottom = MAX(appWindow.y + appWindow.height, 0);
+
+			region16_clear(&windowInvalidRegion);
+			region16_intersect_rect(&windowInvalidRegion, invalidRegion, &windowRect);
+
+			if (!region16_is_empty(&windowInvalidRegion))
+			{
+				extents = region16_extents(&windowInvalidRegion);
+
+				updateRect.left = extents->left - appWindow.x;
+				updateRect.top = extents->top - appWindow.y;
+				updateRect.right = extents->right - appWindow.x;
+				updateRect.bottom = extents->bottom - appWindow.y;
+
+				if (appWindow)
+				{
+					[appWindow mf_UpdateWindowArea:updateRect.left y:updateRect.top width:updateRect.right - updateRect.left height:updateRect.bottom - updateRect.top];
+				}
+			}
+		}
+	}
+
+	region16_uninit(&windowInvalidRegion);
+}
+
+void mac_rail_paint(mfContext* mfc, INT32 uleft, INT32 utop, UINT32 uright, UINT32 ubottom)
+{
+	REGION16 invalidRegion;
+	RECTANGLE_16 invalidRect;
+
+	invalidRect.left = uleft;
+	invalidRect.top = utop;
+	invalidRect.right = uright;
+	invalidRect.bottom = ubottom;
+
+	region16_init(&invalidRegion);
+	region16_union_rect(&invalidRegion, &invalidRegion, &invalidRect);
+
+	mac_rail_invalidate_region(mfc, &invalidRegion);
+
+	region16_uninit(&invalidRegion);
+}
+
+void mac_rail_send_client_system_command(mfContext* mfc, UINT32 windowId, UINT16 command)
+{
+	RAIL_SYSCOMMAND_ORDER syscommand;
+
+	syscommand.windowId = windowId;
+	syscommand.command = command;
+
+	mfc->rail->ClientSystemCommand(mfc->rail, &syscommand);
+}
+
+void mac_rail_send_client_window_move(mfContext* mfc, UINT32 windowId, UINT16 left, UINT16 top,
+									  UINT16 right, UINT16 bottom)
+{
+	RAIL_WINDOW_MOVE_ORDER window_move;
+
+	window_move.windowId = windowId;
+	window_move.left = left;
+	window_move.top = top;
+	window_move.right = right;
+	window_move.bottom = bottom;
+	mfc->rail->ClientWindowMove(mfc->rail, &window_move);
+}
+

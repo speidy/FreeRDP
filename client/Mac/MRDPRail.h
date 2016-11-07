@@ -61,6 +61,16 @@
 		sp:(RAIL_SYSPARAM_ORDER*) sysparam;
 - (UINT) mac_rail_server_handshake:(RailClientContext*) context
 		hs:(RAIL_HANDSHAKE_ORDER*) handshake;
+- (UINT) mac_rail_server_handshake_ex:(RailClientContext*) context
+		he:(RAIL_HANDSHAKE_EX_ORDER*) handshakeEx;
+- (UINT) mac_rail_server_local_move_size:(RailClientContext*) context
+		lm:(RAIL_LOCALMOVESIZE_ORDER*) localMoveSize;
+- (UINT) mac_rail_server_min_max_info:(RailClientContext*) context
+		mm:(RAIL_MINMAXINFO_ORDER*) minMaxInfo;
+- (UINT) mac_rail_server_language_bar_info:(RailClientContext*) context
+		lb:(RAIL_LANGBAR_INFO_ORDER*) langBarInfo;
+- (UINT) mac_rail_server_get_appid_response:(RailClientContext*) context
+		ga:(RAIL_GET_APPID_RESP_ORDER*) getAppIdResp;
 
 @end
 
