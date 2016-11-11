@@ -99,6 +99,12 @@ DWORD mac_client_thread(void* param);
 
 	mfc->client_height = instance->settings->DesktopHeight;
 	mfc->client_width = instance->settings->DesktopWidth;
+	
+	if (instance->settings->RemoteApplicationMode == FALSE)
+	{
+		// Show the main window if not doing RAIL
+		[[self window] makeKeyAndOrderFront:[self window]];
+	}
 
 	if (!(mfc->thread = CreateThread(NULL, 0, mac_client_thread, (void*) context, 0, &mfc->mainThreadId)))
 	{
